@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
 import { IGuest } from "../interface/guest.interface";
-import { apiErrorResponse } from "../utility/apiErrorResponse";
 import catchAsync from "../utility/catchAsync";
-import GuestModel from "./guest.model";
+import GuestModel from "../models/guest.model";
 
 const createGuestServices = async ( data: IGuest) => {
     try{
