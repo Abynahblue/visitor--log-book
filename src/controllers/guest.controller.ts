@@ -8,7 +8,7 @@ import { generateToken } from "../middleware/email";
 import { getHostService, searchHostsServices } from "../services/host.services";
 
 const registerGuest = catchAsync(async (req: Request, res: Response) => {
-    const { first_name, last_name, email, phone, purpose } = req.body;
+    const { first_name, last_name, email, phone } = req.body;
 
     try {
         if (!first_name || !last_name || !email || !phone) {
@@ -22,8 +22,7 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
             phone
         }
         const newGuest = await createGuestServices(data)
-        
-        
+        console.log(newGuest);
         if (newGuest) {
             const token = generateToken(newGuest._id);
             return apiResponse(201, {
@@ -32,9 +31,11 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
                 email: newGuest.email,
                 phone: newGuest.phone, token}, null, res)
             
-        } else {
+        } 
+        else {
             return apiErrorResponse(400, "User exists already", res)
         }
+        
 
     } catch (err) {
         console.log(err);
