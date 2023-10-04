@@ -19,9 +19,7 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
             first_name,
             last_name,
             email,
-            phone,
-            purpose,
-            checkInTime: new Date(),
+            phone
         }
         const newGuest = await createGuestServices(data)
         

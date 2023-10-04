@@ -7,10 +7,7 @@ const guestSchema = new Schema<IGuest>(
         first_name: String,
         last_name: String,
         email: String,
-        phone: String,
-        purpose: String,
-        checkInTime: Date,
-        checkOutTime: Date
+        phone: String
     },
     
     { timestamps: true }
