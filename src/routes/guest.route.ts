@@ -10,6 +10,6 @@ export const guestRoute = (router: IRouter) => {
         .route("/guest/search")
         .get(searchHosts)
     router
-        .route("/checkout/:id")
+        .route("/guest/:id")
         .get(getGuest)
 }
