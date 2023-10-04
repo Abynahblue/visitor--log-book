@@ -1,5 +1,6 @@
-import {model, Schema, Types } from "mongoose";
+import mongoose, {model, Schema, Types } from "mongoose";
 import { IGuest, IGuestModel } from "../interface/guest.interface";
+import HostModel from "./host.model";
 
 const guestSchema = new Schema<IGuest>(
     {

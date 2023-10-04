@@ -9,6 +9,7 @@ const adminSchema = new Schema<IAdmin>({
     phone: { type: String, required: true },
     password: { type: String, required: true },
     company: { type: String, require: true },
+    confirmationCode: { type: String }
 })
 
 // adminSchema.pre<IAdmin>('save', async function (next) {

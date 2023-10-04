@@ -7,7 +7,7 @@ export interface IHost{
     host_phone: string;
     password: string;
     host_company: string;
-    confirmationCode: string
+    confirmationCode?: string
 }
 
 export type IHostModel = IHost & mongoose.Document

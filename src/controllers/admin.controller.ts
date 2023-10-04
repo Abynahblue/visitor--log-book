@@ -60,13 +60,14 @@ const loginAdmin = async (req: Request, res: Response) => {
         }
         const token = generateToken(admin._id);
 
-        res.status(200).json({
+        return apiResponse(201, {
             admin_id: admin._id,
             name: `${admin.firstName} ${admin.lastName}`,
             email: admin.email,
             phone: admin.phone,
             token
-        })
+        }, null, res)
+        
     } catch (error) {
         return apiErrorResponse(400, 'Internal Server Error', res)
     }
@@ -94,14 +95,14 @@ const getConfirmationCode = async (req: Request, res: Response) => {
 
 const updateAdminPassword = async (req: Request, res: Response) => {
     try {
-        const { confirmationCode, password, host_email } = req.body;
-        if (!host_email) {
+        const { confirmationCode, password, email } = req.body;
+        if (!email) {
             return apiErrorResponse(400, "Please provide Email one more time to change password", res)
         }
         if (!confirmationCode) {
             return apiErrorResponse(400, "Please provide code sent to email", res)
         }
-        const admin = await AdminModel.findOne({host_email, confirmationCode: confirmationCode})
+        const admin = await AdminModel.findOne({email, confirmationCode: confirmationCode})
 
         if (!admin) {
             return apiErrorResponse(400, 'Invalid confirmation code', res)
@@ -122,7 +123,7 @@ const updateAdminPassword = async (req: Request, res: Response) => {
 }
 
 const registerHost = async (req: Request, res: Response) => {
-    const { first_name, last_name, email, host_phone, company } = req.body
+    const { first_name, last_name, email, host_phone, company, password } = req.body
     try {
         if (!first_name || !last_name || !email || !host_phone || !company) {
             return apiErrorResponse(400, 'Please add all fields', res)
@@ -132,22 +133,25 @@ const registerHost = async (req: Request, res: Response) => {
             return apiErrorResponse(400, 'Host already exists', res)
         }
 
-        const host_uuid = uuidv4();
+        //if (!email.isEmail) return apiErrorResponse(400, 'Invalid email', res)
+        
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt)
+
+        // host_uuid = uuidv4();
         const host = new HostModel({
-            host_uuid,
+           // host_uuid,
             host_firstname: first_name,
             host_lastname: last_name,
             host_email: email,
             host_phone: host_phone,
-            host_company: company
+            host_company: company,
+            password: hashedPassword
         });
         await host.save();
 
         const transporter = nodemailer.createTransport({
             service: "gmail",
-            host: "smtp.gmail.com",
-            port: 587,
-            secure: false,
             auth: {
                 user: process.env.MAILOPTIONS_USER,
                 pass: process.env.MAILOPTIONS_PASS
@@ -179,6 +183,8 @@ const registerHost = async (req: Request, res: Response) => {
             token: generateToken(host._id)}, null, res)
        
     } catch (error) {
+         console.log(error);
+         
         return apiErrorResponse(400, 'Invalid user data', res)
     } 
 }

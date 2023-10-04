@@ -12,6 +12,15 @@ export const guestSchema = {
     purpose: check("purpose").notEmpty(),
 }
 
+export const Schema = {
+    name: check("name").notEmpty(),
+    email: check("email").isEmail(),
+    phone: check("phone")
+        .notEmpty()
+        .isMobilePhone(["en-GH"], { strictMode: false })
+        .withMessage("Invalid phone number"),
+}
+
 
 export const validateResource = (schema: any) => {
     return (async (req: Request, res: Response, next: NextFunction) => {

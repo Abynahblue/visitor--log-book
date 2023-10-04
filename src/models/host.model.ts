@@ -8,7 +8,7 @@ const hostSchema = new Schema<IHost>({
     host_phone: { type: String, required: true },
     password: { type: String, required: true },
     host_company:{type: String, required: true},
-    confirmationCode: { type: String, required: true}
+    confirmationCode: { type: String}
 })
 
 const HostModel = model<IHostModel>("host", hostSchema)
