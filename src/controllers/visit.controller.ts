@@ -5,7 +5,7 @@ import nodemailer from "nodemailer"
 import { createGuestServices, getGuestService } from "../services/guest.services"
 import { apiErrorResponse, apiResponse } from "../utility/apiErrorResponse"
 import { userResponses } from "../constants/guest.constants"
-import { checkInServices, checkOutServices, guestFromLogsService, setAppointmentServices } from "../services/visit.services"
+import { checkInServices, checkOutServices, getAppointmentServices, guestFromLogsService } from "../services/visit.services"
 import VisitModel from "../models/visit.model"
 import { getHostService } from "../services/host.services"
 import { Types } from "mongoose"
@@ -143,19 +143,21 @@ const setAppointment = async (req: Request, res: Response) => {
     console.log(req.params.id);
     
     const hostId = req.params.id
-    const {guest_id, guestdata } = req.body;
+    let {guest_id, guestdata } = req.body;
     try {
         const host = await getHostService(hostId)
         console.log(host);
         
         if (!host) return apiErrorResponse(400, "Host does not exist", res)
         
-        let guest = await GuestModel.findOne({ guest_id });
-        console.log(guest);
+        let guest = await GuestModel.findOne({_id: guest_id });
+        console.log("vvvvvvvvvvv", guest);
         
         if (!guest) {
             guest = await GuestModel.create(guestdata)
-            await guest.save();
+            guest_id = guest.id
+            console.log("hhhhhhhhhhhhhhh", guest);
+            
         }
         const hostGuest = new VisitModel({
             sign_in: new Date(),
@@ -168,11 +170,11 @@ const setAppointment = async (req: Request, res: Response) => {
         })
         await hostGuest.save();
 
-        const dataImage = await QRCode.toDataURL(JSON.stringify({ guest_id }))
+        const dataImage = await QRCode.toDataURL(JSON.stringify({ guest_id, hostId}))
         guest.qrCode = dataImage
         await guest.save();
 
-        const logInfo: any = await setAppointmentServices(new Types.ObjectId(hostId))
+        const logInfo: any = await getAppointmentServices(new Types.ObjectId(hostId), new Types.ObjectId(guest_id))
         console.log(logInfo);
         
 

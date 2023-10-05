@@ -22,9 +22,10 @@ const checkOutServices = async (guestId: Types.ObjectId) => {
     }).populate("guest_id host_id")
 }
 
-const setAppointmentServices = async (hostId: Types.ObjectId) => {
+const getAppointmentServices = async (hostId: Types.ObjectId, guest_id: Types.ObjectId) => {
     return VisitModel.findOne({
-        host_id: hostId
+        host_id: hostId,
+        guest_id: guest_id
     }).populate("host_id guest_id")
 }
 
@@ -33,5 +34,5 @@ export {
     guestFromLogsService,
     checkOutServices,
     createVisitLogService,
-    setAppointmentServices
+    getAppointmentServices
 }
