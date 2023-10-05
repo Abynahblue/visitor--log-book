@@ -1,4 +1,4 @@
-import {model, Schema, Types } from "mongoose";
+import mongoose, {model, Schema, Types } from "mongoose";
 import { IGuest, IGuestModel } from "../interface/guest.interface";
 
 const guestSchema = new Schema<IGuest>(
@@ -7,9 +7,13 @@ const guestSchema = new Schema<IGuest>(
         last_name: String,
         email: String,
         phone: String,
-        purpose: String,
-        checkInTime: Date,
-        checkOutTime: Date
+        qrCode: {
+            type: String
+        },
+        isQrCodeDisabled: {
+            type: Boolean, 
+            default: false
+        },
     },
     
     { timestamps: true }

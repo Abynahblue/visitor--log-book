@@ -9,7 +9,15 @@ export const guestSchema = {
         .notEmpty()
         .isMobilePhone(["en-GH"], { strictMode: false })
         .withMessage("Invalid phone number"),
-    purpose: check("purpose").notEmpty(),
+}
+
+export const Schema = {
+    name: check("name").notEmpty(),
+    email: check("email").isEmail(),
+    phone: check("phone")
+        .notEmpty()
+        .isMobilePhone(["en-GH"], { strictMode: false })
+        .withMessage("Invalid phone number"),
 }
 
 
@@ -28,6 +36,8 @@ export const validateResource = (schema: any) => {
         next()
     })
 } 
+
+
 
 
 // const keys = Object.keys(schema)

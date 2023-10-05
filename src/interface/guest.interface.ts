@@ -5,9 +5,8 @@ export interface IGuest{
     last_name: string;
     email: string;
     phone: string;
-    purpose: string;
-    checkInTime: Date;
-    checkOutTime?: Date;
+    qrCode?: string;
+    isQrCodeDisabled?: boolean,
 }
 
 export type IGuestModel = IGuest & mongoose.Document

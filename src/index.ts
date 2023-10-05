@@ -2,7 +2,10 @@ import express, { Express } from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv"
 import globalErrorHandler from "./utility/globalErroHandler";
-import { guestRoute } from "./guest/guest.route";
+import { guestRoute } from "./routes/guest.route";
+import { adminRoute } from "./routes/admin.route";
+import { hostRoute } from "./routes/host.route";
+import { visitRoute } from "./routes/visit.route";
 dotenv.config();
 
 
@@ -14,6 +17,9 @@ app.use(express.json());
 
 app.use("/api/v1", router)
 guestRoute(router)
+adminRoute(router)
+hostRoute(router)
+visitRoute(router)
 
 app.get("*", (req, res, next) => {
     res.send("integration successful")
