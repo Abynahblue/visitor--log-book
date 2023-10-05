@@ -1,113 +1,37 @@
-import { ObjectId } from "mongoose"
+import { ObjectId, Types } from "mongoose"
 import VisitModel from "../models/visit.model"
+import GuestModel from "../models/guest.model";
+import { IVisit } from "../interface/visit.interface";
+import { visitRoute } from "../routes/visit.route";
 
+const createVisitLogService = (data: IVisit) => VisitModel.findOne(data)
 const guestFromLogsService = async (id: string) => {
     return VisitModel.findOne({ guest_id: id, sign_in: { $exists: true } });
 }
 
-const checkInServices = async (guestId: ObjectId) => {
-    return VisitModel.aggregate([
-        {
-            $match: {
-                _id: guestId
-            }
-        },
-        {
-            $lookup: {
-                from: "hosts",
-                localField: "hostId",
-                foreignField: "id",
-                as: "host"
-            }
-        },
-        {
-            $unwind: "$host"
-        },
-        {
-            $lookup: {
-                from: "guests",
-                localField: "guestId",
-                foreignField: "id",
-                as: "guest"
-            }
-        },
-        {
-            $unwind: "$guest"
-        },
-        {
-            $project: {
-                _id: 1, 
-                sign_in:'$visitLogs.sign_in',
-                guest: {
-                    _id: '$guest._id',
-                    first_name: '$guest.first_name',
-                    last_name: '$guest.last_name',
-                    email: '$guest.email',
-                },
-                host: {
-                    _id: '$host._id',
-                    host_firstname: '$host.host_firstname',
-                    host_lastname: '$host.host_lastname',
-                    host_email: '$host.host_email'
-                }
-            }
-        }
-    ])
+const checkInServices = async (guestId: Types.ObjectId) => {
+    return VisitModel.findOne({
+        guest_id: guestId
+    }).populate("guest_id host_id")
+}
+        
+
+const checkOutServices = async (guestId: Types.ObjectId) => {
+    return VisitModel.findOne({
+        guest_id: guestId
+    }).populate("guest_id host_id")
 }
 
-const checkOutServices = async (guestId: ObjectId) => {
-    return VisitModel.aggregate([
-        {
-            $match: {
-                _id: guestId
-            }
-        },
-        {
-            $lookup: {
-                from: "hosts",
-                localField: "hostId",
-                foreignField: "id",
-                as: "host"
-            }
-        },
-        {
-            $unwind: "$host"
-        },
-        {
-            $lookup: {
-                from: "guests",
-                localField: "guestId",
-                foreignField: "id",
-                as: "guest"
-            }
-        },
-        {
-            $unwind: "$guest"
-        },
-        {
-            $project: {
-                _id: 1, 
-                sign_out:'$visitLogs.sign_out',
-                guest: {
-                    _id: '$guest._id',
-                    first_name: '$guest.first_name',
-                    last_name: '$guest.last_name',
-                    email: '$guest.email',
-                },
-                host: {
-                    _id: '$host._id',
-                    host_firstname: '$host.host_firstname',
-                    host_lastname: '$host.host_lastname',
-                    host_email: '$host.host_email'
-                }
-            }
-        }
-    ])
+const setAppointmentServices = async (hostId: Types.ObjectId) => {
+    return VisitModel.findOne({
+        host_id: hostId
+    }).populate("host_id guest_id")
 }
-
 
 export {
     checkInServices,
     guestFromLogsService,
-    checkOutServices
+    checkOutServices,
+    createVisitLogService,
+    setAppointmentServices
 }

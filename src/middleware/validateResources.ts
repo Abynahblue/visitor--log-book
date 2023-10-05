@@ -9,7 +9,6 @@ export const guestSchema = {
         .notEmpty()
         .isMobilePhone(["en-GH"], { strictMode: false })
         .withMessage("Invalid phone number"),
-    purpose: check("purpose").notEmpty(),
 }
 
 export const Schema = {
