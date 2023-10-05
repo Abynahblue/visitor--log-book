@@ -143,47 +143,30 @@ const setAppointment = async (req: Request, res: Response) => {
     console.log(req.params.id);
     
     const hostId = req.params.id
-    let {guest_id, guestdata } = req.body;
+    let { email,guestdata } = req.body;
     try {
         const host = await getHostService(hostId)
         console.log(host);
         
         if (!host) return apiErrorResponse(400, "Host does not exist", res)
         
-        let guest = await GuestModel.findOne({_id: guest_id });
-        console.log("vvvvvvvvvvv", guest);
+        const guest = await GuestModel.create(guestdata)
         
-        if (!guest) {
-            guest = await GuestModel.create(guestdata)
-            guest_id = guest.id
-            console.log("hhhhhhhhhhhhhhh", guest);
-            
-        }
-        const hostGuest = new VisitModel({
-            sign_in: new Date(),
-            guest_id: guest_id,
-            host_id: hostId,
-            sign_out: {
-                status: false,
-                date: null
-            }
-        })
-        await hostGuest.save();
-
-        const dataImage = await QRCode.toDataURL(JSON.stringify({ guest_id, hostId}))
+        
+        const dataImage = await QRCode.toDataURL(JSON.stringify({ host}))
         guest.qrCode = dataImage
         await guest.save();
 
-        const logInfo: any = await getAppointmentServices(new Types.ObjectId(hostId), new Types.ObjectId(guest_id))
-        console.log(logInfo);
+        // const logInfo: any = await getAppointmentServices(new Types.ObjectId(hostId), new Types.ObjectId(guest_id))
+        // console.log(logInfo);
         
 
-        const message = `Hello ${logInfo.guest_id.first_name} ${logInfo.guest_id.last_name}, You have a meeting with
-    ${logInfo.host_id.host_firstname} ${logInfo.host_id.host_lastname}  at 9:00am at ${logInfo.host_id.host_company}.
+        const message = `Hello ${guest.first_name} ${guest.last_name}, You have an appointment with
+    ${host.host_firstname} ${host.host_lastname}  at ${host.host_company}.
 
     Contact Details.
-    Email: ${logInfo.host_id.host_email}
-    Phone: ${logInfo.host_id.host_phone}`;
+    Email: ${host.host_email}
+    Phone: ${host.host_phone}`;
 
         const transporter = nodemailer.createTransport({
             service: "gmail",
@@ -195,8 +178,8 @@ const setAppointment = async (req: Request, res: Response) => {
     
         const mailOptions = {
             from: process.env.MAILOPTIONS_USER,
-            to:  logInfo.guest_id.email,
-            subject: 'You have an appointment ',
+            to:  guestdata.email,
+            subject: 'Please scan QrCode for more information ',
             text: message,
             attachments: [
                 {
@@ -208,7 +191,7 @@ const setAppointment = async (req: Request, res: Response) => {
         }
             const info = await transporter.sendMail(mailOptions);
         console.log('Email sent: ' + info.response);
-        return apiResponse(201, { hostGuest, message }, "Email sent successfully", res)
+        return apiResponse(201, {guest, message }, "Email sent successfully", res)
         } catch (error) {
             console.error( error);
             return apiErrorResponse(400, "Internal Server error", res)

@@ -22,7 +22,6 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
             phone
         }
         const newGuest = await createGuestServices(data)
-
         if (newGuest) {
             const token = generateToken(newGuest._id);
             return apiResponse(201, {
@@ -30,6 +29,7 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
                 name: `${newGuest.first_name} ${newGuest.last_name}`,
                 email: newGuest.email,
                 phone: newGuest.phone, token}, null, res)
+            
         } 
         else {
             return apiErrorResponse(400, "User exists already", res)
