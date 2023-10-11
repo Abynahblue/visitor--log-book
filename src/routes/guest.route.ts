@@ -1,18 +1,20 @@
 import express, { Express, IRouter } from "express"
 import { guestSchema, validateResource } from "../middleware/validateResources"
-import { registerGuest, searchHosts,  getAllGuests, getGuest } from "../controllers/guest.controller"
+import { registerGuest,  getAllGuests, getGuest, searchUsers, login } from "../controllers/guest.controller"
 import generateQrCode from "../controllers/qrcode.controller"
 
 export const guestRoute = (router: IRouter) => {
     router.route("/guest")
-        .post([validateResource(guestSchema), registerGuest])
+        .post( registerGuest)
         .get(getAllGuests)
     router
         .route("/guest/search")
-        .get(searchHosts)
+        .get(searchUsers)
     router
         .route("/guest/:id")
         .get(getGuest)
+    router.route("/guest/login").post(login)
+
     router.route("/guest/generateQrCode")
         .post(generateQrCode)
 }

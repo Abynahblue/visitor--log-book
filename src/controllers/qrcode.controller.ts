@@ -14,7 +14,7 @@ const generateQrCode = async (req: Request, res: Response) => {
         console.log(guest);
         
         if (!guest) return apiErrorResponse(400, "No guest was found", res)
-        const dataImage = await QRCode.toDataURL(JSON.stringify({guest_id}))
+        const dataImage: any = await QRCode.toDataURL(JSON.stringify({guest}))
         console.log(dataImage);
         
         guest.qrCode = dataImage

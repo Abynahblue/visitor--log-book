@@ -1,10 +1,12 @@
 import mongoose, {  ObjectId } from "mongoose";
 
 export interface IGuest{
-    first_name: string;
-    last_name: string;
+    fullName: string;
     email: string;
     phone: string;
+    password: string;
+    company?: string;
+    position: string;
     qrCode?: string;
     isQrCodeDisabled?: boolean,
 }

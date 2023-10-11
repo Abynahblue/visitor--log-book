@@ -14,7 +14,7 @@ const visitSchema = new Schema<IVisit>({
         }
     },
     guest_id: { type: mongoose.Types.ObjectId , ref: "Guest", required: true},
-    host_id: { type: mongoose.Types.ObjectId, ref: "host" , required: true},
+    user_id: { type: mongoose.Types.ObjectId, ref: "User" , required: true},
 })
 
 const VisitModel = model<IvisitModel>("VisitLog", visitSchema)

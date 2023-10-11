@@ -17,6 +17,8 @@ const createGuestServices = async ( data: IGuest) => {
 }
 const getGuestService = async (id: string) => GuestModel.findById(id);
 
+const getGuestByEmailService = async (email: string) => GuestModel.findOne({ email });
+
 const getAllGuestServices = async () => GuestModel.find();
 
 const deleteGuestService = async (id: string) => GuestModel.findByIdAndDelete(id)
@@ -26,5 +28,6 @@ export {
     createGuestServices,
     getGuestService,
     getAllGuestServices,
-    deleteGuestService
+    deleteGuestService,
+    getGuestByEmailService
 };

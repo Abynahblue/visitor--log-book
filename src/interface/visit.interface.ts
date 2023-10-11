@@ -15,7 +15,7 @@ export interface IVisit {
     sign_in: ISignIn;
     sign_out: ISignOut;
     guest_id: mongoose.Schema.Types.ObjectId;
-    host_id: mongoose.Schema.Types.ObjectId;
+    user_id: mongoose.Schema.Types.ObjectId;
 }
 
 export type IvisitModel = IVisit & mongoose.Document
