@@ -3,11 +3,7 @@ import bcrypt from "bcrypt"
 import { IUserModel, IUser } from "../interface/user.interface";
 
 export const userSchema = new Schema<IUser>({
-    firstName: {
-        type: String,
-        required: true
-    },
-    lastName: {
+    fullName: {
         type: String,
         required: true
     },
@@ -26,10 +22,6 @@ export const userSchema = new Schema<IUser>({
         type: String,
         required: true,
         unique: true
-    },
-    company: {
-        type: String,
-        required: true
     }, 
     role:{
         type: String,

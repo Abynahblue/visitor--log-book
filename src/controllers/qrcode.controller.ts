@@ -37,7 +37,7 @@ const generateQrCode = async (req: Request, res: Response) => {
             from: process.env.MAILOPTIONS_USER,
             to:  guestInfo?.email,
             subject: 'QR Code for your next check-in at AmaliTech',
-            text: `Hi ${guestInfo?.first_name}
+            text: `Hi ${guestInfo?.fullName}
 
             Use the QR code in this email to check in on your next visit.`,
             attachments: [

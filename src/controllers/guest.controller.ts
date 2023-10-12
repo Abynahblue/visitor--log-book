@@ -4,20 +4,21 @@ import nodemailer from "nodemailer"
 import catchAsync from "../utility/catchAsync";
 import { createGuestServices, getAllGuestServices, getGuestService } from "../services/guest.services";
 import { apiErrorResponse, apiResponse } from "../utility/apiErrorResponse";
-import { userResponses } from "../constants/guest.constants";
 import { IGuest, IGuestModel } from "../interface/guest.interface";
 import { generateToken, getHashedPassword, passwordIsValid } from "../utility/userUitility";
-import { getAllHosts } from "../services/user.services";
+import {  getAllHostsServices, getAllHostsServicesById, getUserByIdService } from "../services/user.services";
 import GuestModel from "../models/guest.model";
 import { checkInServices } from "../services/visit.services";
 import { Types } from "mongoose";
 import VisitModel from "../models/visit.model";
 
 const registerGuest = catchAsync(async (req: Request, res: Response) => {
-    const { name, email, tel, password, position,company } = req.body;
+    const { name, email, tel, password, position, company ,host} = req.body;
+   // console.log(req.body);
+    
 
     try {
-        if (!name || !email || !tel ||!password || !position) {
+        if (!name || !email || !tel ||!password || !position ||!host) {
             return apiErrorResponse(400, "Please add all fields!", res)
         }
         if (passwordIsValid(password)) {
@@ -35,16 +36,17 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
             company
         }
         const guest = await createGuestServices(data)
-        if (guest) {
-            await guest.save()
+        //console.log(guest);
+        
+        if (!guest) {
+            return apiErrorResponse(400, "Failed to create guest", res)
         }
-        const guests = await getAllGuestServices()
-        const host = await getAllHosts()
+        const user = await getUserByIdService(host)
 
         const visitLog = new VisitModel({
             sign_in: new Date(),
-            guest_id: guest,
-            host_id: host,
+            guest_id: guest._id,
+            user_id: user?._id,
             sign_out: {
                 status: false,
                 date: null
@@ -52,16 +54,14 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
         })
         await visitLog.save();
         const token = generateToken(visitLog._id)
-
-        const logInfo: any = await checkInServices(new Types.ObjectId(guests._id))
         
     
-        const message = `Hello ${logInfo.host_id.host_firstname} ${logInfo.host_id.host_lastname}, 
-        ${logInfo.guest_id.first_name} ${logInfo.guest_id.last_name} has just checked in at ${logInfo.sign_in} to see you.
+        const message = `Hello ${user?.fullName} , 
+        ${guest.fullName}  has just checked in at ${visitLog.sign_in} to see you.
         
         Contact Details.
-        Email: ${logInfo.guest_id.email}
-        Phone: ${logInfo.guest_id.phone}`;
+        Email: ${guest.email}
+        Phone: ${guest.phone}`;
         
         const transporter = nodemailer.createTransport({
             service: "gmail",
@@ -73,7 +73,7 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
     
         const mailOptions = {
             from: process.env.MAILOPTIONS_USER,
-            to: logInfo.host_id.host_email,
+            to: user?.email,
             subject: 'You have a guest',
             text: message
         }
@@ -82,11 +82,7 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
             console.log('Email sent: ' + info.response);
     
             return apiResponse(201, { visitLog, token }, "check in succesful", res);
-        } catch (error) {
-            console.log(error)
-            return apiErrorResponse(400, "Internal Server Error, Email not sent to host", res)
-            
-        }
+        
 
     } catch (err) {
         console.log(err);
@@ -97,30 +93,43 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
 
 const login = async (req: Request, res: Response) => {
     try {
-        const { email, password, position } = req.body
-        if (!email || !password)
+        const { email, password, position, host } = req.body
+        if (!email || !password ||!host)
             return apiErrorResponse(400, "Please provide email and password", res)
 
-        const user = await GuestModel.findOne({ email }).select("+password")
-        if (!user) {
-            return apiErrorResponse(400, 'User does not exist', res)
+        const guest = await GuestModel.findOne({ email }).select("+password")
+        if (!guest) {
+            return apiErrorResponse(400, 'Guest does not exist', res)
         }
-        if (!(await bcrypt.compare(password.trim(), user.password!.trim()))) {
+        if (!(await bcrypt.compare(password.trim(), guest.password!.trim()))) {
             return apiErrorResponse(400, 'Invalid credentials', res)
        }
-        if (user && (await bcrypt.compare(password, user.password!))) {
-            const token: string = generateToken(user._id, user.position);
+        if (guest && (await bcrypt.compare(password, guest.password!))) {
         
-            const logInfo: any = await checkInServices(new Types.ObjectId(user.id))
-
-
-            const message = `Hello ${logInfo.user_id.firstName} ${logInfo.user_id.lastName}, 
-        ${logInfo.guest_id.first_name} ${logInfo.guest_id.last_name} has just checked in at ${logInfo.sign_in} to see you.
         
-        Contact Details.
-        Email: ${logInfo.guest_id.email}
-        Phone: ${logInfo.guest_id.phone}`;
-    
+            const user = await getUserByIdService(host)
+
+            const visitLog = new VisitModel({
+                sign_in: new Date(),
+                guest_id: guest._id,
+                user_id: user?._id,
+                sign_out: {
+                    status: false,
+                    date: null
+                }
+            })
+            await visitLog.save();
+            const token = generateToken(visitLog._id)
+
+            //const visitId = await VisitModel.findOne({_id:visitLog._id}).populate('guest_id user_id')
+            
+            const message = `Hello ${user?.fullName} , 
+            ${guest.fullName}  has just checked in at ${visitLog.sign_in} to see you.
+            
+            Contact Details.
+            Email: ${guest.email}
+            Phone: ${guest.phone}`;
+            
             const transporter = nodemailer.createTransport({
                 service: "gmail",
                 auth: {
@@ -128,20 +137,21 @@ const login = async (req: Request, res: Response) => {
                     pass: process.env.MAILOPTIONS_PASS
                 }
             });
-    
+        
             const mailOptions = {
                 from: process.env.MAILOPTIONS_USER,
-                to: logInfo.host_id.host_email,
+                to: user?.email,
                 subject: 'You have a guest',
                 text: message
             }
-    
+            
             const info = await transporter.sendMail(mailOptions);
             console.log('Email sent: ' + info.response);
-    
-
-            return apiResponse(201,null , "Guest checked in successfully", res)
+        
+            return apiResponse(201, { visitLog, token }, "check in successful", res);
         }
+    
+           
     } catch (error) {
         console.log(error);
         return apiErrorResponse(500, "Internal Server Error", res)
@@ -182,7 +192,7 @@ const getAllGuests = catchAsync(async (req: Request, res: Response,) => {
 
 const searchUsers = async (req: Request, res: Response) => {
     try {
-        const host = await getAllHosts()
+        const host = await getAllHostsServices()
         if (!host) return apiErrorResponse(400, 'There is no host matching your search', res)
 
         return apiResponse(201, host, null, res)
@@ -193,4 +203,12 @@ const searchUsers = async (req: Request, res: Response) => {
     }
 }
 
-export { registerGuest,login, getAllGuests, getGuest, searchUsers };
+
+
+export {
+    registerGuest,
+    login,
+    getAllGuests,
+    getGuest,
+    searchUsers,
+};

@@ -2,12 +2,10 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IUser {
     _id?: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
     email: string;
     password: string;
     phone: string;
-    company: string;
     role: string;
 }
 

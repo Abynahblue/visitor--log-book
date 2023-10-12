@@ -11,8 +11,10 @@ import { generateToken, getHashedPassword, passwordIsValid } from "../utility/us
 
 const createUser = async (req: Request, res: Response) => {
     try {
-        const { firstName, lastName, email, phone, password, company, role } = req.body;
-        if (!firstName || !lastName || !email || !phone || !password || !company || !role) {
+        //console.log(req.body);
+        
+        const { fullName, email, phone, password, position } = req.body;
+        if (!fullName|| !email || !phone || !password  || !position) {
             return apiErrorResponse(400, 'Please provide all required fields', res)
         }
         const userExists = await UserModel.findOne({ email: email });
@@ -22,20 +24,18 @@ const createUser = async (req: Request, res: Response) => {
         }
         const salt = await bcrypt.genSalt(10)
         const hashedPassword = await bcrypt.hash(password, salt)
-        console.log(hashedPassword)
+        //console.log(hashedPassword)
         
         const data: IUser = {
-            firstName,
-            lastName,
+            fullName,
             email,
             phone,
             password: hashedPassword,
-            company,
-            role
+            role: position
         }
         const newUser = await createUserServices(data)
         await newUser.save();
-
+        
 
         const transporter = nodemailer.createTransport({
             service: "gmail",
@@ -49,7 +49,7 @@ const createUser = async (req: Request, res: Response) => {
             from: process.env.MAILOPTIONS_USER,
             to: email,
             subject: `Amalitech Vilog added you as a ${newUser.role}`,
-            text: `Hi ${firstName}
+            text: `Hi ${newUser.fullName}
 
             You have been added as a ${newUser.role} on the AmaliTech ViLog System. You can log in with your email and password. 
             Your default password is 1234. Please change this to a more secure password.,
@@ -64,8 +64,8 @@ const createUser = async (req: Request, res: Response) => {
         }
 
         res.status(201).json({
-            admin_id: newUser._id,
-            name: `${newUser.firstName} ${newUser.lastName}`,
+            user_id: newUser._id,
+            name: `${newUser.fullName}`,
             email: newUser.email,
             phone: newUser.phone,
             role: newUser.role
@@ -81,7 +81,9 @@ const login = async (req: Request, res: Response) => {
         if (!userEmail || !password)
             return apiErrorResponse(400, "Please provide email and password", res)
 
-        const user = await UserModel.findOne({ email:userEmail }).select("+password")
+        const user = await UserModel.findOne({ email: userEmail }).select("+password")
+        //console.log(user);
+        
         if (!user) {
             return apiErrorResponse(400, 'User does not exist', res)
         }
@@ -90,7 +92,39 @@ const login = async (req: Request, res: Response) => {
        }
         if (user && (await bcrypt.compare(password, user.password!))) {
             const token: string = generateToken(user._id, user.role);
+           // console.log(token);
+
             return apiResponse(201, null,"Logged in", res)
+        }
+    } catch (error) {
+        console.log(error);
+        return apiErrorResponse(500, "Internal Server Error", res)
+    }
+}
+
+const adminLogin = async (req: Request, res: Response) => {
+    try {
+        //console.log(req.body);
+        
+        const { userEmail, password } = req.body
+        if (!userEmail || !password)
+            return apiErrorResponse(400, "Please provide email and password", res)
+
+        const user = await UserModel.findOne({ email: userEmail }).select("+password")
+        //console.log(user);
+        if (!user) {
+            return apiErrorResponse(400, 'User does not exist', res)
+        }
+        if (!(await bcrypt.compare(password.trim(), user.password!.trim()))) {
+            return apiErrorResponse(400, 'Invalid credentials', res)
+        }
+        //console.log(user);
+        
+        if (user && (await bcrypt.compare(password, user.password!))) {
+            const token: string = generateToken(user._id, user.role);
+            //console.log(token);
+            
+            return apiResponse(201, null, "Logged in", res);
         }
     } catch (error) {
         console.log(error);
@@ -101,7 +135,7 @@ const login = async (req: Request, res: Response) => {
 const updatePassword = async (req: Request, res: Response,) => {
     const { newPassword, oldPassword } = req.body;
     const user = await UserModel.findById((req as CustomExpressRequest).currentUserId).select('+password')
-    console.log((req as CustomExpressRequest).currentUserId)
+    //console.log((req as CustomExpressRequest).currentUserId)
 
     if (!(user && await bcrypt.compare(oldPassword, user!.password))) {
         return apiErrorResponse(400, "Incorrect password", res)
@@ -198,6 +232,7 @@ const forgotPasswordreset = async (req: Request, res: Response) => {
 export {
     createUser,
     login,
+    adminLogin,
     updatePassword,
     initiateForgotPasswordreset,
     forgotPasswordreset

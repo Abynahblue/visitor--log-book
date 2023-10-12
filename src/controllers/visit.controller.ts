@@ -5,7 +5,7 @@ import nodemailer from "nodemailer"
 import { createGuestServices, getGuestByEmailService, getGuestService } from "../services/guest.services"
 import { apiErrorResponse, apiResponse } from "../utility/apiErrorResponse"
 import { userResponses } from "../constants/guest.constants"
-import { checkInServices, checkOutServices, getAllVisitLogsServices, guestFromLogsService } from "../services/visit.services"
+import {  checkOutServices, getAllVisitLogsServices, getMonthlyVisitsServices } from "../services/visit.services"
 import VisitModel from "../models/visit.model"
 import { Types } from "mongoose"
 import GuestModel from "../models/guest.model"
@@ -110,7 +110,7 @@ const setAppointment = async (req: Request, res: Response) => {
             Time: req.body.meetingDetails.Time,
             Location: req.body.meetingDetails.Location,
             agenda: req.body.meetingDetails.agenda,
-            Organizer: `${user.firstName} ${user.lastName}`
+            Organizer: `${user.fullName}`
         };
 
         const dataImage = await QRCode.toDataURL(JSON.stringify({ meetingDetails}))
@@ -118,7 +118,7 @@ const setAppointment = async (req: Request, res: Response) => {
         await guest.save();
 
         const message = `Hello ${guest.first_name} ${guest.last_name}, You have an appointment with
-    ${user.firstName} ${user.lastName}  at ${user.company}.
+    ${user.fullName}   at Amalitech.
 
     Contact Details.
     Email: ${user.email}
@@ -154,12 +154,19 @@ const setAppointment = async (req: Request, res: Response) => {
     }
 }
 
-const getLiveVisitors = async (req: Request, res: Response) => {
-    
+const getMonthlyVisits = async (req: Request, res: Response) => {
+    try {
+        const monthlyVisits = await getMonthlyVisitsServices()
+        return apiResponse(201, monthlyVisits, null, res)
+    } catch (error) {
+        console.log(error);
+        return apiErrorResponse(400, "Internal Server Error", res)
+    }
 }
 
 export {
     hostVisitorRecords,
     checkOut,
-    setAppointment
+    setAppointment,
+    getMonthlyVisits
 }

@@ -1,13 +1,26 @@
 import { Request, Response } from "express";
 import { apiErrorResponse, apiResponse } from "../utility/apiErrorResponse";
 import catchAsync from "../utility/catchAsync";
-import { deleteUserServices, getAllUserServices, getUserService, updateUserServices } from "../services/user.services";
+import { deleteUserServices, getAllHostsServicesById, getAllUserServices, getUserService, updateUserServices } from "../services/user.services";
 
 const getAllUsers = catchAsync(async (req: Request, res: Response,) => {
     const users = await getAllUserServices();
     if (!users) return apiErrorResponse(400, "Error fetching guests", res)
     return apiResponse(200, users, null, res)
 })
+
+const getAllHosts = async (req: Request, res: Response) => {
+    try {
+        const host = await getAllHostsServicesById('password')
+        if (!host) return apiErrorResponse(400, 'There is no host matching your search', res)
+
+        return apiResponse(201, host, null, res)
+    } catch (error) {
+        console.log(error);
+        return apiErrorResponse(400, 'Internal Server Error', res)
+
+    }
+}
 
 const getUser = async (req: Request, res: Response) => {
     const id = req.params.id;
@@ -41,5 +54,6 @@ export {
     getAllUsers,
     getUser,
     updateUser,
-    deleteUser
+    deleteUser,
+    getAllHosts
 }
