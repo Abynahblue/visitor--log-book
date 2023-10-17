@@ -1,20 +1,21 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt"
 import nodemailer from "nodemailer"
-import  jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { apiErrorResponse, apiResponse } from "../utility/apiErrorResponse";
 import UserModel from "../models/user.model";
 import { createUserServices, getUserByIdService, getUserService, updateUserServices } from "../services/user.services";
 import { IUser } from "../interface/user.interface";
 import { CustomExpressRequest, DecodedToken } from "../types";
 import { generateToken, getHashedPassword, passwordIsValid } from "../utility/userUitility";
+import { generateRandomPassword } from "../middleware/email";
 
 const createUser = async (req: Request, res: Response) => {
     try {
-        //console.log(req.body);
-        
-        const { fullName, email, phone, password, position } = req.body;
-        if (!fullName|| !email || !phone || !password  || !position) {
+        console.log(req.body);
+
+        const { fullName, email, phone, position } = req.body;
+        if (!fullName || !email || !phone || !position) {
             return apiErrorResponse(400, 'Please provide all required fields', res)
         }
         const userExists = await UserModel.findOne({ email: email });
@@ -22,10 +23,10 @@ const createUser = async (req: Request, res: Response) => {
         if (userExists) {
             return apiErrorResponse(400, 'User already exists', res)
         }
-        const salt = await bcrypt.genSalt(10)
-        const hashedPassword = await bcrypt.hash(password, salt)
+        const randomPassword = generateRandomPassword()
+        const hashedPassword = await bcrypt.hash(randomPassword, 10)
         //console.log(hashedPassword)
-        
+
         const data: IUser = {
             fullName,
             email,
@@ -35,7 +36,7 @@ const createUser = async (req: Request, res: Response) => {
         }
         const newUser = await createUserServices(data)
         await newUser.save();
-        
+
 
         const transporter = nodemailer.createTransport({
             service: "gmail",
@@ -52,7 +53,11 @@ const createUser = async (req: Request, res: Response) => {
             text: `Hi ${newUser.fullName}
 
             You have been added as a ${newUser.role} on the AmaliTech ViLog System. You can log in with your email and password. 
-            Your default password is 1234. Please change this to a more secure password.,
+            Your default password is ${randomPassword}. Please change this to a more secure password.,
+
+            To update your password, click on the following link:
+            http://localhost:5010/api/v1/user/${newUser.id}
+
             `
         }
         try {
@@ -83,18 +88,18 @@ const login = async (req: Request, res: Response) => {
 
         const user = await UserModel.findOne({ email: userEmail }).select("+password")
         //console.log(user);
-        
+
         if (!user) {
             return apiErrorResponse(400, 'User does not exist', res)
         }
         if (!(await bcrypt.compare(password.trim(), user.password!.trim()))) {
             return apiErrorResponse(400, 'Invalid credentials', res)
-       }
+        }
         if (user && (await bcrypt.compare(password, user.password!))) {
             const token: string = generateToken(user._id, user.role);
-           // console.log(token);
+            // console.log(token);
 
-            return apiResponse(201, null,"Logged in", res)
+            return apiResponse(201, null, "Logged in", res)
         }
     } catch (error) {
         console.log(error);
@@ -105,7 +110,7 @@ const login = async (req: Request, res: Response) => {
 const adminLogin = async (req: Request, res: Response) => {
     try {
         //console.log(req.body);
-        
+
         const { userEmail, password } = req.body
         if (!userEmail || !password)
             return apiErrorResponse(400, "Please provide email and password", res)
@@ -119,11 +124,11 @@ const adminLogin = async (req: Request, res: Response) => {
             return apiErrorResponse(400, 'Invalid credentials', res)
         }
         //console.log(user);
-        
+
         if (user && (await bcrypt.compare(password, user.password!))) {
             const token: string = generateToken(user._id, user.role);
             //console.log(token);
-            
+
             return apiResponse(201, null, "Logged in", res);
         }
     } catch (error) {
@@ -162,7 +167,7 @@ const initiateForgotPasswordreset = async (req: Request, res: Response) => {
         // if (!userProfile || !userProfile.userId || !userProfile.userId.email) {
         //     return apiErrorResponse(400, 'User profile or email not found', res);
         // }
-        
+
         const token = generateToken(user.id)
 
         const transporter = nodemailer.createTransport({
@@ -172,7 +177,7 @@ const initiateForgotPasswordreset = async (req: Request, res: Response) => {
                 pass: process.env.MAILOPTIONS_PASS
             }
         });
-    
+
         const mail = {
             from: process.env.MAILOPTIONS_USER,
             to: email,
@@ -201,9 +206,9 @@ const forgotPasswordreset = async (req: Request, res: Response) => {
             return apiErrorResponse(400, "Password mismatch", res)
         }
 
-        
+
         const tokenData: any = jwt.verify(token, process.env.JWT_SECRET!)
-        
+
 
         let user = await getUserByIdService(tokenData?._id, "+password")
 
@@ -215,15 +220,15 @@ const forgotPasswordreset = async (req: Request, res: Response) => {
         user = await updateUserServices(user?.id, {
             password: hashedPassword,
         })
-    
+
         const accessToken = generateToken(user?._id)
 
         const resp = { userId: user?.id, userRole: user?.role, accessToken }
-    
+
         return apiResponse(200, resp, "User updated successfully", res)
     } catch (error) {
         console.log(error);
-        
+
         return apiErrorResponse(400, "Internal Server error", res)
     }
 

@@ -10,12 +10,13 @@ const guestFromLogsService = async (id: string) => {
     return VisitModel.findOne({ guest_id: id, sign_in: { $exists: true } });
 }
 const getAllVisitLogsServices = async () => VisitModel.find().populate('guest_id user_id');
-const checkInServices = async (guestId: Types.ObjectId) => {
+
+const hostVisitsService = async (userId: string) => {
     return VisitModel.findOne({
-        guest_id: guestId,
+        user_id: userId,
     }).populate("guest_id user_id")
 }
-        
+
 
 const checkOutServices = async (guestId: Types.ObjectId) => {
     return VisitModel.findOne({
@@ -62,7 +63,7 @@ const getMonthlyVisitsServices = async () => {
 }
 
 export {
-    checkInServices,
+    hostVisitsService,
     guestFromLogsService,
     checkOutServices,
     createVisitLogService,
