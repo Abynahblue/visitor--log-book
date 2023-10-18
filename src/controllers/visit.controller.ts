@@ -5,16 +5,24 @@ import nodemailer from "nodemailer"
 import { createGuestServices, getGuestByEmailService, getGuestService } from "../services/guest.services"
 import { apiErrorResponse, apiResponse } from "../utility/apiErrorResponse"
 import { userResponses } from "../constants/guest.constants"
-import {  checkOutServices, getAllVisitLogsServices, getMonthlyVisitsServices } from "../services/visit.services"
+import { checkOutServices, getAllVisitLogsServices, getMonthlyVisitsServices, hostVisitsService } from "../services/visit.services"
 import VisitModel from "../models/visit.model"
 import { Types } from "mongoose"
 import GuestModel from "../models/guest.model"
 import { generateTokenForGuest } from "../utility/userUitility"
 import { getUserByIDService } from "../services/user.services"
+import { CustomExpressRequest } from "../types"
 
 const hostVisitorRecords = catchAsync(async (req: Request, res: Response) => {
     try {
-        const visits = await getAllVisitLogsServices()
+        const userId = (req as CustomExpressRequest).currentUserId
+        const userRole = (req as CustomExpressRequest).role
+        let visits;
+        if (userRole == "Host") {
+            visits = await hostVisitsService(userId)
+        } else {
+            visits = await getAllVisitLogsServices()
+        }
         return apiResponse(201, visits, null, res)
     } catch (error) {
         console.log(error)
@@ -90,7 +98,7 @@ const checkOut = async (req: Request, res: Response) => {
 
 const setAppointment = async (req: Request, res: Response) => {
     console.log(req.params.id);
-    
+
     const userId = req.params.id
     let { email, guestdata, meetingDetails } = req.body;
     try {
@@ -98,9 +106,9 @@ const setAppointment = async (req: Request, res: Response) => {
         console.log(user);
 
         if (!user) return apiErrorResponse(400, "User does not exist", res)
-        
-        
-        const guest : any = await getGuestByEmailService(email)
+
+
+        const guest: any = await getGuestByEmailService(email)
         if (!guest) {
             await GuestModel.create(guestdata)
         }
@@ -113,7 +121,7 @@ const setAppointment = async (req: Request, res: Response) => {
             Organizer: `${user.fullName}`
         };
 
-        const dataImage = await QRCode.toDataURL(JSON.stringify({ meetingDetails}))
+        const dataImage = await QRCode.toDataURL(JSON.stringify({ meetingDetails }))
         guest.qrCode = dataImage
         await guest.save();
 
