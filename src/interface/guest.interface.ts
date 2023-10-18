@@ -1,10 +1,13 @@
-import mongoose, {  ObjectId } from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 
-export interface IGuest{
-    first_name: string;
-    last_name: string;
+export interface IGuest {
+    fullName: string;
     email: string;
     phone: string;
+    password: string;
+    company?: string;
+    position: string;
+    user?: mongoose.Types.ObjectId;
     qrCode?: string;
     isQrCodeDisabled?: boolean,
 }

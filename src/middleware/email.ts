@@ -1,19 +1,34 @@
 import nodemailer from "nodemailer";
-import jwt from "jsonwebtoken"
-import { Result } from "express-validator";
+import jwt, { sign } from "jsonwebtoken";
+import { Response } from "express";
+import UserModel from "../models/user.model";
+import { IUser, IUserModel } from "../interface/user.interface";
+import { apiResponse } from "../utility/apiErrorResponse";
 
-const generateToken = (id: string): string => {
-    return jwt.sign({ id }, process.env.JWT_SECRET || 'your-secret-key', {
-        expiresIn: process.env.JWT_EXPIRES_IN,
-    })
-}
 
-const generateConfirmationCode = (): string => {
+
+// const generateToken = async (user: IUserModel, res: Response) => {
+//     const token = signToken(user._id)
+//     const cookieOptions = {
+//         //expiresIn: new Date(Date.now() + parseInt(process.env.JWT_COOKIES_EXPIRES_IN!) * 60 * 60 * 1000),
+//         httpOnly: true,
+//         secure: false
+//     }
+//     if (process.env.NODE_ENV === "production"){
+//         cookieOptions.secure = true
+//     }
+//     res.cookie("jwt", token, cookieOptions)
+//     user.password = undefined
+
+//     return apiResponse(201, {token, user}, "Token generated successfully",res)
+//  }
+
+const generateRandomPassword = (): string => {
     let result = "";
-    const charcters = "0123456789";
-    for (let i = 0; i < 7; i++){
-        result += charcters.charAt(
-            Math.floor(Math.random() * charcters.length)
+    const characters = "0123456789";
+    for (let i = 0; i < 7; i++) {
+        result += characters.charAt(
+            Math.floor(Math.random() * characters.length)
         )
     }
     return result
@@ -32,14 +47,14 @@ const sendConfirmationEmail = async (email: string, confirmationCode: string) =>
         from: process.env.MAILOPTIONS_USER,
         to: email,
         subject: 'Amalitech Vilog Password change',
-        text:'User the confirmation code provided in this email to reset your password'
+        text: 'Use the confirmation code provided in this email to reset your password'
     }
     try {
         const info = await transporter.sendMail(mailOptions);
         console.log('Email sent: ' + info.response);
     } catch (error) {
         console.error('Confirmation code could not be sent to email. Error: ', error);
-        
+
     }
 }
 
@@ -66,12 +81,11 @@ const sendConfirmationEmail = async (email: string, confirmationCode: string) =>
 //         console.log('Email sent: ' + info.response);
 //     } catch (error) {
 //         console.error('Confirmation code could not be sent to email. Error: ', error);
-        
+
 //     }
 // }
 
 export {
     sendConfirmationEmail,
-    generateConfirmationCode,
-    generateToken
+    generateRandomPassword,
 }

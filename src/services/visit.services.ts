@@ -4,17 +4,19 @@ import GuestModel from "../models/guest.model";
 import { IVisit } from "../interface/visit.interface";
 import { visitRoute } from "../routes/visit.route";
 
-const createVisitLogService = (data: IVisit) => VisitModel.findOne(data)
+const createVisitLogService = async (data: IVisit) => VisitModel.findOne(data)
+
 const guestFromLogsService = async (id: string) => {
     return VisitModel.findOne({ guest_id: id, sign_in: { $exists: true } });
 }
+const getAllVisitLogsServices = async () => VisitModel.find().populate('guest_id user_id');
 
-const checkInServices = async (guestId: Types.ObjectId) => {
+const hostVisitsService = async (userId: string) => {
     return VisitModel.findOne({
-        guest_id: guestId
-    }).populate("guest_id host_id")
+        user_id: userId,
+    }).populate("guest_id user_id")
 }
-        
+
 
 const checkOutServices = async (guestId: Types.ObjectId) => {
     return VisitModel.findOne({
@@ -22,17 +24,49 @@ const checkOutServices = async (guestId: Types.ObjectId) => {
     }).populate("guest_id host_id")
 }
 
-const getAppointmentServices = async (hostId: Types.ObjectId, guest_id: Types.ObjectId) => {
-    return VisitModel.findOne({
-        host_id: hostId,
-        guest_id: guest_id
-    }).populate("host_id guest_id")
+const getMonthlyVisitsServices = async () => {
+    return VisitModel.aggregate([
+        {
+            $group: {
+                _id: {
+                    $month: '$sign_in'
+                },
+                Visit: { $sum: 1 },
+            }
+        },
+        {
+            $project: {
+                Months: {
+                    $switch: {
+                        branches: [
+                            { case: { $eq: ['$_id', 1] }, then: 'January' },
+                            { case: { $eq: ['$_id', 2] }, then: 'February' },
+                            { case: { $eq: ['$_id', 3] }, then: 'March' },
+                            { case: { $eq: ['$_id', 4] }, then: 'April' },
+                            { case: { $eq: ['$_id', 5] }, then: 'May' },
+                            { case: { $eq: ['$_id', 6] }, then: 'June' },
+                            { case: { $eq: ['$_id', 7] }, then: 'July' },
+                            { case: { $eq: ['$_id', 8] }, then: 'August' },
+                            { case: { $eq: ['$_id', 9] }, then: 'September' },
+                            { case: { $eq: ['$_id', 10] }, then: 'October' },
+                            { case: { $eq: ['$_id', 11] }, then: 'November' },
+                            { case: { $eq: ['$_id', 12] }, then: 'December' }
+                        ],
+                        default: 'Invalid Month'
+                    }
+                },
+                Visit: 1,
+                _id: 0
+            }
+        }
+    ]);
 }
 
 export {
-    checkInServices,
+    hostVisitsService,
     guestFromLogsService,
     checkOutServices,
     createVisitLogService,
-    getAppointmentServices
+    getAllVisitLogsServices,
+    getMonthlyVisitsServices
 }

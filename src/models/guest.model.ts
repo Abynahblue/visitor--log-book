@@ -1,21 +1,39 @@
-import mongoose, {model, Schema, Types } from "mongoose";
+import mongoose, { model, Schema, Types } from "mongoose";
 import { IGuest, IGuestModel } from "../interface/guest.interface";
 
 const guestSchema = new Schema<IGuest>(
     {
-        first_name: String,
-        last_name: String,
-        email: String,
+        fullName: String,
+        email: {
+            type: String,
+            required: true,
+            unique: true
+        },
         phone: String,
+        password: {
+            type: String,
+            required: true,
+            minlength: 8,
+            select: false
+        },
+        position: {
+            type: String,
+            enum: ["visitor", "contractor"],
+            required: true
+        },
+        user: {
+            type: String,
+            ref: "User"
+        },
         qrCode: {
-            type: String
+            type: String,
         },
         isQrCodeDisabled: {
-            type: Boolean, 
+            type: Boolean,
             default: false
         },
     },
-    
+
     { timestamps: true }
 );
 const GuestModel = model<IGuestModel>("Guest", guestSchema)
