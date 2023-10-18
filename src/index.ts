@@ -20,8 +20,8 @@ guestRoute(router)
 userRoute(router)
 visitRoute(router)
 
-app.get("*", (req, res, next) => {
-    res.send("integration successful")
+app.get("/", (req, res, next) => {
+    res.json({ message: "Welcome to my webpage" })
 })
 
 app.use(globalErrorHandler)
