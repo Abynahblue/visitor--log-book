@@ -12,7 +12,7 @@ const guestFromLogsService = async (id: string) => {
 const getAllVisitLogsServices = async () => VisitModel.find().populate('guest_id user_id');
 
 const hostVisitsService = async (userId: string) => {
-    return VisitModel.findOne({
+    return VisitModel.find({
         user_id: userId,
     }).populate("guest_id user_id")
 }

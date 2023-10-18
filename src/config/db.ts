@@ -7,13 +7,10 @@ import { data } from "./data"
 export default async () => {
     const DB_URL = data.DB_URL_DEVELOPMENT
 
-    // if (!DB_URL) {
-    //     console.error("Database URL not found. Check your configuration")
-    //     process.exit(1)
-    // }
-    
+
+
     const db_uri = `${DB_URL}`.replace("<PASSWORD>", data.DB_PASSWORD!)
-    
+
     try {
         mongoose.set("strictQuery", false);
         const conn = await mongoose.connect(db_uri);
@@ -21,7 +18,7 @@ export default async () => {
     } catch (error) {
         if (error) {
             console.log("Can not connect to database", error);
-            
+
             process.exit(1);
         }
     }

@@ -18,7 +18,6 @@ import { hostVisitorRecords } from "./visit.controller";
 
 const registerGuest = catchAsync(async (req: Request, res: Response) => {
     const { name, email, tel, password, position, company, host } = req.body;
-    // console.log(req.body);
 
 
     try {
@@ -40,7 +39,6 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
             company
         }
         const guest = await createGuestServices(data)
-        //console.log(guest);
 
         if (!guest) {
             return apiErrorResponse(400, "Failed to create guest", res)
@@ -83,13 +81,11 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
         }
 
         const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent: ' + info.response);
 
         return apiResponse(201, { visitLog, token }, "check in succesful", res);
 
 
     } catch (err) {
-        console.log(err);
 
         return apiErrorResponse(400, "Internal Server Error", res)
     }
@@ -98,7 +94,6 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
 const login = async (req: Request, res: Response) => {
     try {
         const { email, password, position, host } = req.body
-        console.log({ email, password, position, host })
         if (!email || !password || !host)
             return apiErrorResponse(400, "Please provide email and password", res)
 
@@ -109,10 +104,7 @@ const login = async (req: Request, res: Response) => {
 
         const passwordCheck = password === guest.password ? false : !(bcrypt.compareSync(password.trim(), guest.password!.trim()));
         if (passwordCheck) {
-            console.log({
-                ps: password.length === guest.password.length,
-                gp: !(bcrypt.compareSync(password.trim(), guest.password!.trim()))
-            })
+
             return apiErrorResponse(400, 'Invalid credentials', res)
         }
         if (guest && ((await bcrypt.compare(password
@@ -158,14 +150,12 @@ const login = async (req: Request, res: Response) => {
             }
 
             const info = await transporter.sendMail(mailOptions);
-            console.log('Email sent: ' + info.response);
 
             return apiResponse(201, { visitLog, token }, "check in successful", res);
         }
 
 
     } catch (error) {
-        console.log(error);
         return apiErrorResponse(500, "Internal Server Error", res)
     }
 }
