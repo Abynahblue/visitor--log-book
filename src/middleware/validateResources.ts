@@ -54,7 +54,6 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
     } try {
         const decoded: any = await jwt.verify(token, process.env.JWT_SECRET!)
         const {_id, role} = decoded
-        console.log(decoded)
         const currentUser: IUser | null = await UserModel.findById(_id)
         
         if (!currentUser) {
