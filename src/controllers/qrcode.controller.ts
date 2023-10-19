@@ -23,7 +23,6 @@ const generateQrCode = async (req: Request, res: Response) => {
 
 
         const guestInfo = await getGuestService(guest._id)
-        console.log(guestInfo);
 
 
         const transporter = nodemailer.createTransport({
@@ -49,11 +48,9 @@ const generateQrCode = async (req: Request, res: Response) => {
             ]
         }
         const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent: ' + info.response);
 
         return apiResponse(201, { qrCode: dataImage, message: "Qrcode generated successfully and sent to guest email" }, '', res);
     } catch (error) {
-        console.error('Confirmation code could not be sent to email. Error: ', error);
         return apiErrorResponse(500, "internal server error", res)
     }
 }
@@ -61,7 +58,6 @@ const generateQrCode = async (req: Request, res: Response) => {
 const loginWithQRCode = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body
-        console.log("QrCode data recieved - Email: ", email, "Password: ", password);
 
         if (!email || !password) return apiErrorResponse(400, " Email and password are required the qrcode", res)
 
@@ -70,7 +66,6 @@ const loginWithQRCode = async (req: Request, res: Response) => {
 
         return apiResponse(200, { guest }, "Login successful", res)
     } catch (error) {
-        console.error("Error logging in with qrCode: ", error)
         return apiErrorResponse(500, "Internal Server Error", res)
     }
 }

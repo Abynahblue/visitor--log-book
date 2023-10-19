@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node-dev --respawn --transpile-only src/app.ts"
+    "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
+    "transpile": "tsc",
+    "rimraf": "rm -rf dist",
+    "start": "npm run rimraf && npm run transpile && node ./dist/app.js"
   },
   "keywords": [],
   "author": "",

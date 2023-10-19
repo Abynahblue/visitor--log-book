@@ -16,7 +16,6 @@ const getAllHosts = async (req: Request, res: Response) => {
 
         return apiResponse(201, host, null, res)
     } catch (error) {
-        console.log(error);
         return apiErrorResponse(400, 'Internal Server Error', res)
 
     }
@@ -30,14 +29,12 @@ const getUser = async (req: Request, res: Response) => {
 
         return apiResponse(201, user, null, res)
     } catch (error) {
-        console.log(error);
         return apiErrorResponse(500, 'Internal Server', res)
     }
 }
 
 const updateUser = catchAsync(async (req: Request, res: Response) => {
     const userId = req.params.id;
-    console.log("dddddddddddd", userId)
     const user = await getUserByIDService(userId);
     if (!user) return apiErrorResponse(400, "Invalid Id", res);
     await updateUserServices(userId, req.body);

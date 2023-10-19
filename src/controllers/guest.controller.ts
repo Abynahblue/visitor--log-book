@@ -169,7 +169,6 @@ const getGuest = async (req: Request, res: Response) => {
 
         return apiResponse(201, guest, null, res)
     } catch (error) {
-        console.log(error);
         return apiErrorResponse(500, 'Internal Server', res)
     }
 }
@@ -205,7 +204,6 @@ const searchUsers = async (req: Request, res: Response) => {
 
         return apiResponse(201, host, null, res)
     } catch (error) {
-        console.log(error);
         return apiErrorResponse(400, 'Internal Server Error', res)
 
     }
@@ -213,11 +211,9 @@ const searchUsers = async (req: Request, res: Response) => {
 
 const getHostGuests = async (req: Request, res: Response) => {
     const userId = req.params.id;
-    console.log(req.params.id);
 
     try {
         const visits: any = await hostVisitsService(userId)
-        console.log(visits);
 
         if (!visits || visits.length === 0) {
             return apiErrorResponse(400, "No guests found for the user", res)

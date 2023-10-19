@@ -25,7 +25,6 @@ const hostVisitorRecords = catchAsync(async (req: Request, res: Response) => {
         }
         return apiResponse(201, visits, null, res)
     } catch (error) {
-        console.log(error)
         return apiErrorResponse(400, "Internal Server Error, Email not sent to host", res)
 
     }
@@ -81,29 +80,24 @@ const checkOut = async (req: Request, res: Response) => {
             }
 
             const info = await transporter.sendMail(mailOptions);
-            console.log('Email sent: ' + info.response);
             return apiResponse(201, { message }, "Guest checked out successfully", res);
         } catch (error) {
-            console.log(error)
             return apiErrorResponse(400, "Internal Server Error, Email not sent to host", res)
 
         }
 
     } catch (error) {
-        console.log(error);
 
         return apiErrorResponse(500, "Internal server error", res)
     }
 }
 
 const setAppointment = async (req: Request, res: Response) => {
-    console.log(req.params.id);
 
     const userId = req.params.id
     let { email, guestdata, meetingDetails } = req.body;
     try {
         const user = await getUserByIDService(userId)
-        console.log(user);
 
         if (!user) return apiErrorResponse(400, "User does not exist", res)
 
@@ -157,7 +151,6 @@ const setAppointment = async (req: Request, res: Response) => {
         console.log('Email sent: ' + info.response);
         return apiResponse(201, { meetingDetails, message }, "Email sent successfully", res)
     } catch (error) {
-        console.error(error);
         return apiErrorResponse(400, "Internal Server error", res)
     }
 }
@@ -167,7 +160,6 @@ const getMonthlyVisits = async (req: Request, res: Response) => {
         const monthlyVisits = await getMonthlyVisitsServices()
         return apiResponse(201, monthlyVisits, null, res)
     } catch (error) {
-        console.log(error);
         return apiErrorResponse(400, "Internal Server Error", res)
     }
 }
