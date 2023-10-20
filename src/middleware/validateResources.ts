@@ -64,7 +64,6 @@ export const protect = async (req: Request, res: Response, next: NextFunction) =
 
         next();
     } catch (error) {
-        console.log(error)
         return apiErrorResponse(400, "Your jwt is incorrect or expired", res)
     }
 }

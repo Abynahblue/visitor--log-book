@@ -7,7 +7,7 @@ import { visitRoute } from "../routes/visit.route";
 const createVisitLogService = async (data: IVisit) => VisitModel.findOne(data)
 
 const guestFromLogsService = async (id: string) => {
-    return VisitModel.findOne({ guest_id: id, sign_in: { $exists: true } });
+    return VisitModel.findOne({ _id: id });
 }
 const getAllVisitLogsServices = async () => VisitModel.find().populate('guest_id user_id');
 
