@@ -18,7 +18,7 @@ export const guestRoute = (router: IRouter) => {
         .post(login)
 
     router.route("/guest/generateQrCode")
-        .post(restrictTo("Admin"), generateQrCode)
+        .post(generateQrCode)
     router
         .route("/guest/qrCodeLogin")
         .post(loginWithQRCode)

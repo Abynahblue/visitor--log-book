@@ -78,9 +78,7 @@ const sendConfirmationEmail = async (email: string, confirmationCode: string) =>
 //     }
 //     try {
 //         const info = await transporter.sendMail(mailOptions);
-//         console.log('Email sent: ' + info.response);
 //     } catch (error) {
-//         console.error('Confirmation code could not be sent to email. Error: ', error);
 
 //     }
 // }

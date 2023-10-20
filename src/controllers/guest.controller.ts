@@ -177,13 +177,14 @@ const getGuest = async (req: Request, res: Response) => {
 
 
 const logout = catchAsync(async (req: Request, res: Response) => {
-    const visitLogId = req.body
+    const visitLogId = req.body.visitLogId;
     const visitLog = await guestFromLogsService(visitLogId)
 
     if (!visitLog) {
         return apiErrorResponse(400, "Visit log not found", res)
     }
     visitLog.sign_out = {
+        ...visitLog.sign_out,
         status: true,
         date: new Date()
     }

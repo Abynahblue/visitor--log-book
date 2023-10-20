@@ -12,7 +12,6 @@ const createGuestServices = async (data: IGuest) => {
         return await GuestModel.create(data)
 
     } catch (error) {
-        console.log(error);
         throw error
     }
 }
