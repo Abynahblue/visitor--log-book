@@ -1,5 +1,5 @@
 import { IRouter } from "express";
-import { checkOut, getMonthlyVisits, hostVisitorRecords, setAppointment } from "../controllers/visit.controller";
+import { checkOut, getMonthlyVisits, getliveVisits, hostVisitorRecords, setAppointment } from "../controllers/visit.controller";
 import { protect } from "../middleware/validateResources";
 
 export const visitRoute = (router: IRouter) => {
@@ -7,4 +7,5 @@ export const visitRoute = (router: IRouter) => {
     router.route("/visitLog/check-out/:id").post(checkOut)
     router.route("/visit/setAppointment/:id").post(setAppointment),
         router.route("/monthly-visits").get(getMonthlyVisits)
+    router.route("/live_visits").get(getliveVisits)
 }
