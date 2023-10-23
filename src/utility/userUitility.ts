@@ -1,12 +1,12 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt"
-import {promisify} from "util";
+import { promisify } from "util";
 import { IUser } from "../interface/user.interface";
 
 const generateToken = (_id: string, role = "host"): string => {
 
   return jwt.sign({ _id, role }, process.env.JWT_SECRET!, {
-      expiresIn: process.env.JWT_EXPIRES_IN,
+    expiresIn: process.env.JWT_EXPIRES_IN,
   })
 };
 
@@ -17,7 +17,7 @@ const generateTokenForGuest = (_id: string) => {
     },
       process.env.JWT_SECRET || "",
       { expiresIn: "2h" });
-    
+
     return accessToken
   };
   return "";
@@ -30,7 +30,7 @@ const decodedToken = (token: string, env: string) => {
 const encodeToken = (data: any, env: string) => {
   if (!data) return {};
 
-  return jwt.sign({data}, env);
+  return jwt.sign({ data }, env);
 };
 
 const getHashedPassword = async (password: string) => {
@@ -45,7 +45,6 @@ const passwordIsValid = (password: string) => {
   );
   return re.test(password);
 };
-
 
 export {
   decodedToken,

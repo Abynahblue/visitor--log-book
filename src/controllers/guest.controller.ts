@@ -1,12 +1,13 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt"
+import QRCode from "qrcode"
 import nodemailer from "nodemailer"
 import catchAsync from "../utility/catchAsync";
 import { createGuestServices, getAllGuestServices, getGuestService } from "../services/guest.services";
 import { apiErrorResponse, apiResponse } from "../utility/apiErrorResponse";
 import { IGuest, IGuestModel } from "../interface/guest.interface";
 import { generateToken, getHashedPassword, passwordIsValid } from "../utility/userUitility";
-import { getAllHostsServices, getAllHostsServicesById, getAllUserServices, getUserByIdService } from "../services/user.services";
+import { getAllHostsServices, getAllHostsServicesById, getAllUserServices, getLoggedInUsers, getUserByIdService } from "../services/user.services";
 import GuestModel from "../models/guest.model";
 import { guestFromLogsService, hostVisitsService } from "../services/visit.services";
 import mongoose, { Types } from "mongoose";
@@ -15,18 +16,29 @@ import { userResponses } from "../constants/guest.constants";
 import { IVisit } from "../interface/visit.interface";
 import { getAllUsers } from "./user.controller";
 import { hostVisitorRecords } from "./visit.controller";
+import { resolveContent } from "nodemailer/lib/shared";
 
 const registerGuest = catchAsync(async (req: Request, res: Response) => {
-    const { name, email, tel, password, position, company, host } = req.body;
+    const { name, email, tel, password, company, hostEmail } = req.body;
 
 
     try {
-        if (!name || !email || !tel || !password || !position || !host) {
+        if (!name || !email || !tel || !password || !hostEmail) {
             return apiErrorResponse(400, "Please add all fields!", res)
         }
         if (passwordIsValid(password)) {
             return apiErrorResponse(400, "Invalid password, please enter a valid password", res)
         }
+
+        const domains = ["amalitech.com", "amalitech.org"]
+        const hostDomain = hostEmail.split("@")[1]
+        const isAmalitechEmail = domains.includes(hostDomain)
+
+
+        if (!isAmalitechEmail) {
+            return apiErrorResponse(400, "Invalid host email. Please provide a valid email", res)
+        }
+        const [firstName, lastName] = hostEmail.split("@")[0].split(".");
 
         const hashedPassword = await getHashedPassword(password);
 
@@ -35,7 +47,6 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
             email,
             phone: tel,
             password: hashedPassword,
-            position,
             company
         }
         const guest = await createGuestServices(data)
@@ -43,12 +54,12 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
         if (!guest) {
             return apiErrorResponse(400, "Failed to create guest", res)
         }
-        const user = await getUserByIdService(host)
 
         const visitLog = new VisitModel({
             sign_in: new Date(),
             guest_id: guest._id,
-            user_id: user?._id,
+            host_first_name: firstName,
+            host_last_name: lastName,
             sign_out: {
                 status: false,
                 date: null
@@ -58,7 +69,7 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
         const token = generateToken(visitLog._id)
 
 
-        const message = `Hello ${user?.fullName} , 
+        const message = `Hello ${firstName} ${lastName}, 
         ${guest.fullName}  has just checked in at ${visitLog.sign_in} to see you.
         
         Contact Details.
@@ -75,32 +86,58 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
 
         const mailOptions = {
             from: process.env.MAILOPTIONS_USER,
-            to: user?.email,
+            to: hostEmail,
             subject: 'You have a guest',
             text: message
         }
 
-        const info = await transporter.sendMail(mailOptions);
+        const infoHost = await transporter.sendMail(mailOptions);
+        const qrCode = JSON.stringify(visitLog._id)
+        const dataImage: any = await QRCode.toDataURL(qrCode);
 
-        return apiResponse(201, { visitLog, token }, "check in succesful", res);
+        const emailOptions = {
+            from: process.env.MAILOPTIONS_USER,
+            to: guest.email,
+            subject: 'Here is your  QR code for logout',
+            text: `Hi ${guest.fullName}
+            
+            Use the QR code in this email to check out.`,
+            attachments: [
+                {
+                    filename: "qr-image.png",
+                    path: dataImage
+                }
+            ]
+        }
+        const infoGuest = await transporter.sendMail(emailOptions);
+        return apiResponse(201, { visitLog, token, visitLogId: visitLog._id }, "check in successful", res);
 
 
     } catch (err) {
-
+        console.error(err);
         return apiErrorResponse(400, "Internal Server Error", res)
     }
 })
 
 const login = async (req: Request, res: Response) => {
     try {
-        const { email, password, position, host } = req.body
-        if (!email || !password || !host)
+        const { email, password, position, hostEmail } = req.body
+        if (!email || !password || !hostEmail)
             return apiErrorResponse(400, "Please provide email and password", res)
 
         const guest = await GuestModel.findOne({ email }).select("+password")
         if (!guest) {
             return apiErrorResponse(400, 'Guest does not exist', res)
         }
+
+
+        const domains = ["amalitech.com", "amalitech.org"]
+        const hostDomain = hostEmail.split("@")[1]
+        const isAmalitechEmail = domains.includes(hostDomain)
+        if (!isAmalitechEmail) {
+            return apiErrorResponse(400, "Invalid host email. Please provide a valid email", res)
+        }
+        const [FirstName, lastName] = hostEmail.split("@")[0].split(".");
 
         const passwordCheck = password === guest.password ? false : !(bcrypt.compareSync(password.trim(), guest.password!.trim()));
         if (passwordCheck) {
@@ -111,12 +148,12 @@ const login = async (req: Request, res: Response) => {
             , guest.password!)) || password === guest.password!)) {
 
 
-            const user = await getUserByIdService(host)
 
             const visitLog = new VisitModel({
                 sign_in: new Date(),
                 guest_id: guest._id,
-                user_id: user?._id,
+                host_first_name: FirstName,
+                host_last_name: lastName,
                 sign_out: {
                     status: false,
                     date: null
@@ -127,7 +164,7 @@ const login = async (req: Request, res: Response) => {
 
             //const visitId = await VisitModel.findOne({_id:visitLog._id}).populate('guest_id user_id')
 
-            const message = `Hello ${user?.fullName} , 
+            const message = `Hello ${FirstName} ${lastName} , 
             ${guest.fullName}  has just checked in at ${visitLog.sign_in} to see you.
             
             Contact Details.
@@ -144,16 +181,33 @@ const login = async (req: Request, res: Response) => {
 
             const mailOptions = {
                 from: process.env.MAILOPTIONS_USER,
-                to: user?.email,
+                to: hostEmail,
                 subject: 'You have a guest',
                 text: message
             }
 
-            const info = await transporter.sendMail(mailOptions);
+            const infoHost = await transporter.sendMail(mailOptions);
+            const qrCode = JSON.stringify(visitLog._id)
+            const dataImage: any = await QRCode.toDataURL(qrCode);
+
+            const emailOptions = {
+                from: process.env.MAILOPTIONS_USER,
+                to: guest.email,
+                subject: 'Here is your  QR code for logout',
+                text: `Hi ${guest.fullName}
+                
+                Use the QR code in this email to check out.`,
+                attachments: [
+                    {
+                        filename: "qr-image.png",
+                        path: dataImage
+                    }
+                ]
+            }
+            const infoGuest = await transporter.sendMail(emailOptions);
 
             return apiResponse(201, { visitLog, token }, "check in successful", res);
         }
-
 
     } catch (error) {
         return apiErrorResponse(500, "Internal Server Error", res)
@@ -176,21 +230,51 @@ const getGuest = async (req: Request, res: Response) => {
 
 
 
-const logout = catchAsync(async (req: Request, res: Response) => {
-    const visitLogId = req.body.visitLogId;
-    const visitLog = await guestFromLogsService(visitLogId)
+const logout = async (req: Request, res: Response) => {
+    try {
+        const visitLogId = req.body.visitLogId;
+        const visitLog: any = await guestFromLogsService(visitLogId)
 
-    if (!visitLog) {
-        return apiErrorResponse(400, "Visit log not found", res)
+        if (!visitLog) {
+            return apiErrorResponse(400, "Visit log not found", res)
+        }
+        visitLog.sign_out = {
+            ...visitLog.sign_out,
+            status: true,
+            date: new Date()
+        }
+        await visitLog.save()
+
+        const admin: any = await getLoggedInUsers();
+        if (!admin) {
+            return apiErrorResponse(400, "there is no admin currently logged in", res)
+        }
+        const message = `Hello ${admin.fullName}
+        
+        ${visitLog.guest_id.fullName} has logged  out`
+
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: process.env.MAILOPTIONS_USER,
+                pass: process.env.MAILOPTIONS_PASS
+            }
+        });
+
+        const mailOptions = {
+            from: process.env.MAILOPTIONS_USER,
+            to: admin.email,
+            subject: 'Guest checkout notification',
+            text: message
+        }
+        const info = await transporter.sendMail(mailOptions)
+
+        return apiResponse(200, visitLog, "Guest check-out successful.", res)
+    } catch (err) {
+        console.error(err)
+        return apiErrorResponse(400, "Internal Server error", res)
     }
-    visitLog.sign_out = {
-        ...visitLog.sign_out,
-        status: true,
-        date: new Date()
-    }
-    await visitLog.save()
-    return apiResponse(200, visitLog, "Guest check-out successful.", res)
-})
+}
 
 const getAllGuests = catchAsync(async (req: Request, res: Response,) => {
     const guests = await getAllGuestServices();

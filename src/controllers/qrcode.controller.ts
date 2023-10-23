@@ -7,20 +7,26 @@ import nodemailer from "nodemailer"
 
 const generateQrCode = async (req: Request, res: Response) => {
     try {
-        const { email: guestEmail } = req.body;
+        const { hostEmail, email: guestEmail } = req.body;
         if (!guestEmail) return apiErrorResponse(400, "Id is required", res)
+
+        const domains = ["amalitech.com", "amalitech.org"]
+        const hostDomain = hostEmail.split("@")[1]
+        const isAmalitechEmail = domains.includes(hostDomain)
+        if (!isAmalitechEmail) {
+            return apiErrorResponse(400, "Invalid host email. Please provide a valid email", res)
+        }
 
         const guest = await getGuestByEmailService(guestEmail, "+password")
 
         if (!guest) return apiErrorResponse(400, "No guest was found", res)
 
         const { email, password } = guest
-        const qrCode = JSON.stringify({ email, password });
+        const qrCode = JSON.stringify({ email, password, hostEmail });
         const dataImage: any = await QRCode.toDataURL(qrCode);
 
         guest.qrCode = dataImage
         await guest.save()
-
 
         const guestInfo = await getGuestService(guest._id)
 

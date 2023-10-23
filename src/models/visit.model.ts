@@ -13,8 +13,8 @@ const visitSchema = new Schema<IVisit>({
             default: null
         }
     },
-    guest_id: { type: mongoose.Types.ObjectId , ref: "Guest", required: true},
-    user_id: { type: mongoose.Types.ObjectId, ref: "User" , required: true},
+    guest_id: { type: mongoose.Types.ObjectId, ref: "Guest", required: true },
+    hostEmail: String,
 })
 
 const VisitModel = model<IvisitModel>("VisitLog", visitSchema)

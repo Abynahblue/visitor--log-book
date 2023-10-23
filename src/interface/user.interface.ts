@@ -7,11 +7,12 @@ export interface IUser {
     password: string;
     phone: string;
     role: string;
+    loggedIn: boolean
 }
 
-export interface IUserMethods{
+export interface IUserMethods {
     correctPassword(): boolean
 }
- 
+
 export type IUserModel = IUser & mongoose.Document
 
