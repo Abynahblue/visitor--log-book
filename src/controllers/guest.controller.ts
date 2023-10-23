@@ -58,8 +58,7 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
         const visitLog = new VisitModel({
             sign_in: new Date(),
             guest_id: guest._id,
-            host_first_name: firstName,
-            host_last_name: lastName,
+            hostEmail: hostEmail,
             sign_out: {
                 status: false,
                 date: null
@@ -152,8 +151,7 @@ const login = async (req: Request, res: Response) => {
             const visitLog = new VisitModel({
                 sign_in: new Date(),
                 guest_id: guest._id,
-                host_first_name: FirstName,
-                host_last_name: lastName,
+                hostEmail: hostEmail,
                 sign_out: {
                     status: false,
                     date: null
