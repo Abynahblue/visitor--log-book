@@ -16,11 +16,6 @@ const guestSchema = new Schema<IGuest>(
             minlength: 8,
             select: false
         },
-        position: {
-            type: String,
-            enum: ["visitor", "contractor"],
-            required: true
-        },
         user: {
             type: String,
             ref: "User"

@@ -7,16 +7,17 @@ const createUserServices = async (data: IUser) => {
 const getUserByIdService = async (id: string, select = "") => UserModel.findById(id).select(select)
 const getUserByIDService = async (id: string) => UserModel.findById(id)
 const getUserService = async (email: string) => UserModel.findOne({ email }).exec();
+const getLoggedInUsers = async () => UserModel.find({ loggedIn: true })
 const getAllUserServices = async () => UserModel.find()
 const updateUserServices = async (id: string, data: any) => UserModel.findByIdAndUpdate({ _id: id }, data, { new: true });
 const deleteUserServices = async (id: string) => UserModel.findByIdAndDelete(id)
 
 const getAllHostsServices = async (keyword = "", page = 1, select = "") => {
-  return UserModel.find({
-      role: "Host"
+    return UserModel.find({
+        role: "Host"
     }).select(select)
 }
-const getAllHostsServicesById = async (id: string,select = "") => {
+const getAllHostsServicesById = async (id: string, select = "") => {
     return UserModel.find({
         id: String,
     }, 'id password fullName email phone role')
@@ -28,7 +29,8 @@ export {
     getUserByIdService,
     updateUserServices,
     deleteUserServices,
-   getAllHostsServices,
+    getAllHostsServices,
     getUserByIDService,
-    getAllHostsServicesById
+    getAllHostsServicesById,
+    getLoggedInUsers
 }

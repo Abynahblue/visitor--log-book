@@ -9,7 +9,9 @@ const createVisitLogService = async (data: IVisit) => VisitModel.findOne(data)
 const guestFromLogsService = async (id: string) => {
     return VisitModel.findOne({ _id: id });
 }
-const getAllVisitLogsServices = async () => VisitModel.find().populate('guest_id user_id');
+const getAllVisitLogsServices = async () => VisitModel.find().populate('guest_id hostEmail');
+
+const getLiveVisitsServices = async () => VisitModel.find({ "sign_out.status": false }).populate('guest_id hostEmail')
 
 const hostVisitsService = async (userId: string) => {
     return VisitModel.find({
@@ -68,5 +70,6 @@ export {
     checkOutServices,
     createVisitLogService,
     getAllVisitLogsServices,
-    getMonthlyVisitsServices
+    getMonthlyVisitsServices,
+    getLiveVisitsServices
 }

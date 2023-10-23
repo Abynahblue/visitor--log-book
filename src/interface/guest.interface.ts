@@ -6,7 +6,6 @@ export interface IGuest {
     phone: string;
     password: string;
     company?: string;
-    position: string;
     user?: mongoose.Types.ObjectId;
     qrCode?: string;
     isQrCodeDisabled?: boolean,

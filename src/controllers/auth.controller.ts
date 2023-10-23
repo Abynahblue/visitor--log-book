@@ -31,7 +31,8 @@ const createUser = async (req: Request, res: Response) => {
             email,
             phone,
             password: hashedPassword,
-            role: position
+            role: position,
+            loggedIn: false
         }
         const newUser = await createUserServices(data)
         await newUser.save();
@@ -84,6 +85,8 @@ const login = async (req: Request, res: Response) => {
             return apiErrorResponse(400, "Please provide email and password", res)
 
         const user = await UserModel.findOne({ email: userEmail }).select("+password")
+        console.log(user);
+
 
         if (!user) {
             return apiErrorResponse(400, 'User does not exist', res)
@@ -92,39 +95,45 @@ const login = async (req: Request, res: Response) => {
             return apiErrorResponse(400, 'Invalid credentials', res)
         }
         if (user && (await bcrypt.compare(password, user.password!))) {
+
+            user.loggedIn = true
+            await user.save();
+
             const token: string = generateToken(user._id, user.role);
 
             return apiResponse(200, { token }, "Logged in", res)
         }
+        console.log(user);
+
     } catch (error) {
         return apiErrorResponse(500, "Internal Server Error", res)
     }
 }
 
-const adminLogin = async (req: Request, res: Response) => {
-    try {
+// const adminLogin = async (req: Request, res: Response) => {
+//     try {
 
-        const { userEmail, password } = req.body
-        if (!userEmail || !password)
-            return apiErrorResponse(400, "Please provide email and password", res)
+//         const { userEmail, password } = req.body
+//         if (!userEmail || !password)
+//             return apiErrorResponse(400, "Please provide email and password", res)
 
-        const user = await UserModel.findOne({ email: userEmail }).select("+password")
-        if (!user) {
-            return apiErrorResponse(400, 'User does not exist', res)
-        }
-        if (!(await bcrypt.compare(password.trim(), user.password!.trim()))) {
-            return apiErrorResponse(400, 'Invalid credentials', res)
-        }
+//         const user = await UserModel.findOne({ email: userEmail }).select("+password")
+//         if (!user) {
+//             return apiErrorResponse(400, 'User does not exist', res)
+//         }
+//         if (!(await bcrypt.compare(password.trim(), user.password!.trim()))) {
+//             return apiErrorResponse(400, 'Invalid credentials', res)
+//         }
 
-        if (user && (await bcrypt.compare(password, user.password!))) {
-            const token: string = generateToken(user._id, user.role);
+//         if (user && (await bcrypt.compare(password, user.password!))) {
+//             const token: string = generateToken(user._id, user.role);
 
-            return apiResponse(201, null, "Logged in", res);
-        }
-    } catch (error) {
-        return apiErrorResponse(500, "Internal Server Error", res)
-    }
-}
+//             return apiResponse(201, null, "Logged in", res);
+//         }
+//     } catch (error) {
+//         return apiErrorResponse(500, "Internal Server Error", res)
+//     }
+// }
 
 const updatePassword = async (req: Request, res: Response,) => {
     const { newPassword, oldPassword } = req.body;
@@ -223,7 +232,7 @@ const forgotPasswordreset = async (req: Request, res: Response) => {
 export {
     createUser,
     login,
-    adminLogin,
+    // adminLogin,
     updatePassword,
     initiateForgotPasswordreset,
     forgotPasswordreset

@@ -5,7 +5,7 @@ import nodemailer from "nodemailer"
 import { createGuestServices, getGuestByEmailService, getGuestService } from "../services/guest.services"
 import { apiErrorResponse, apiResponse } from "../utility/apiErrorResponse"
 import { userResponses } from "../constants/guest.constants"
-import { checkOutServices, getAllVisitLogsServices, getMonthlyVisitsServices, hostVisitsService } from "../services/visit.services"
+import { checkOutServices, getAllVisitLogsServices, getLiveVisitsServices, getMonthlyVisitsServices, hostVisitsService } from "../services/visit.services"
 import VisitModel from "../models/visit.model"
 import { Types } from "mongoose"
 import GuestModel from "../models/guest.model"
@@ -29,6 +29,16 @@ const hostVisitorRecords = catchAsync(async (req: Request, res: Response) => {
 
     }
 })
+
+const getliveVisits = async (req: Request, res: Response) => {
+    try {
+        const liveVisits = await getLiveVisitsServices()
+
+        return apiResponse(200, liveVisits, null, res)
+    } catch (err) {
+        return apiErrorResponse(400, "Internal Server error", res)
+    }
+}
 
 const checkOut = async (req: Request, res: Response) => {
     try {
@@ -168,5 +178,6 @@ export {
     hostVisitorRecords,
     checkOut,
     setAppointment,
-    getMonthlyVisits
+    getMonthlyVisits,
+    getliveVisits
 }

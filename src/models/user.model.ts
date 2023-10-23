@@ -13,7 +13,7 @@ export const userSchema = new Schema<IUser>({
         unique: true
     },
     password: {
-        type: String ,
+        type: String,
         required: true,
         minlength: 8,
         select: false
@@ -22,13 +22,17 @@ export const userSchema = new Schema<IUser>({
         type: String,
         required: true,
         unique: true
-    }, 
-    role:{
+    },
+    role: {
         type: String,
         enum: ["Admin", "Host"],
         required: true
     },
-    
+    loggedIn: {
+        type: Boolean,
+        default: false
+    }
+
 }, { timestamps: true })
 
 
