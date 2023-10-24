@@ -65,7 +65,7 @@ const loginWithQRCode = async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body
 
-        if (!email || !password) return apiErrorResponse(400, " Email and password are required the qrcode", res)
+        if (!email || !password) return apiErrorResponse(400, " Email and password are required from the qrcode", res)
 
         const guest = await GuestModel.findOne({ email, password });
         if (!guest) return apiErrorResponse(400, "Guest not found", res)
