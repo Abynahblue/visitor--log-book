@@ -91,7 +91,8 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
         }
 
         const infoHost = await transporter.sendMail(mailOptions);
-        const qrCode = JSON.stringify({ visitLog: visitLog._id })
+
+        const qrCode = JSON.stringify({ visitLogId: visitLog._id });
         const dataImage: any = await QRCode.toDataURL(qrCode);
 
         const emailOptions = {
@@ -248,7 +249,8 @@ const logout = async (req: Request, res: Response) => {
         if (admins.length === 0) {
             return apiErrorResponse(400, "there is no admin currently logged in", res)
         }
-        admins.array.forEach(async (admin: any) => {
+
+        for (const admin of admins.array) {
 
             const message = `Hello ${admin.fullName}
             
@@ -269,7 +271,7 @@ const logout = async (req: Request, res: Response) => {
                 text: message
             }
             const info = await transporter.sendMail(mailOptions)
-        });
+        };
 
         return apiResponse(200, visitLog, "Guest check-out successful.", res)
     } catch (err) {
