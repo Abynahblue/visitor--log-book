@@ -158,7 +158,7 @@ const login = async (req: Request, res: Response) => {
                 }
             })
             await visitLog.save();
-            const token = generateToken(visitLog._id)
+            //const token = generateToken(visitLog._id)
 
             //const visitId = await VisitModel.findOne({_id:visitLog._id}).populate('guest_id user_id')
 
@@ -185,7 +185,8 @@ const login = async (req: Request, res: Response) => {
             }
 
             const infoHost = await transporter.sendMail(mailOptions);
-            const qrCode = JSON.stringify(visitLog._id)
+
+            const qrCode = JSON.stringify({ visitLogId: visitLog._id })
             const dataImage: any = await QRCode.toDataURL(qrCode);
 
             const emailOptions = {
@@ -204,7 +205,7 @@ const login = async (req: Request, res: Response) => {
             }
             const infoGuest = await transporter.sendMail(emailOptions);
 
-            return apiResponse(201, { visitLog, token }, "check in successful", res);
+            return apiResponse(201, { visitLog }, "check in successful", res);
         }
 
     } catch (error) {
@@ -230,7 +231,7 @@ const getGuest = async (req: Request, res: Response) => {
 
 const logout = async (req: Request, res: Response) => {
     try {
-        const visitLogId = req.body.visitLogId;
+        const { visitLogId } = req.body;
         const visitLog: any = await guestFromLogsService(visitLogId)
 
         if (!visitLog) {
