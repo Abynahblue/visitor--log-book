@@ -91,7 +91,7 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
         }
 
         const infoHost = await transporter.sendMail(mailOptions);
-        const qrCode = JSON.stringify(visitLog._id)
+        const qrCode = JSON.stringify({ visitLog: visitLog._id })
         const dataImage: any = await QRCode.toDataURL(qrCode);
 
         const emailOptions = {
@@ -244,29 +244,32 @@ const logout = async (req: Request, res: Response) => {
         }
         await visitLog.save()
 
-        const admin: any = await getLoggedInUsers();
-        if (!admin) {
+        const admins: any = await getLoggedInUsers();
+        if (admins.length === 0) {
             return apiErrorResponse(400, "there is no admin currently logged in", res)
         }
-        const message = `Hello ${admin.fullName}
-        
-        ${visitLog.guest_id.fullName} has logged  out`
+        admins.array.forEach(async (admin: any) => {
 
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: process.env.MAILOPTIONS_USER,
-                pass: process.env.MAILOPTIONS_PASS
+            const message = `Hello ${admin.fullName}
+            
+            ${visitLog.guest_id.fullName} has logged  out`
+
+            const transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                    user: process.env.MAILOPTIONS_USER,
+                    pass: process.env.MAILOPTIONS_PASS
+                }
+            });
+
+            const mailOptions = {
+                from: process.env.MAILOPTIONS_USER,
+                to: admin.email,
+                subject: 'Guest checkout notification',
+                text: message
             }
+            const info = await transporter.sendMail(mailOptions)
         });
-
-        const mailOptions = {
-            from: process.env.MAILOPTIONS_USER,
-            to: admin.email,
-            subject: 'Guest checkout notification',
-            text: message
-        }
-        const info = await transporter.sendMail(mailOptions)
 
         return apiResponse(200, visitLog, "Guest check-out successful.", res)
     } catch (err) {
