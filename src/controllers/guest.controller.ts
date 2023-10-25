@@ -297,7 +297,7 @@ const logout = async (req: Request, res: Response) => {
             const info = await transporter.sendMail(mailOptions)
         })
 
-        return apiResponse(200, { visitLog: visitLog.sign_out, message: "logout successful, See you again" }, "", res);
+        return apiResponse(200, visitLog, "logout successful, See you again", res);
     } catch (err) {
         console.error(err)
         return apiErrorResponse(400, "Internal Server error", res)
