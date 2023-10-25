@@ -17,6 +17,11 @@ const getAllHostsServices = async (keyword = "", page = 1, select = "") => {
         role: "Host"
     }).select(select)
 }
+const getUserServices = async () => {
+    return UserModel.find({
+        role: "SuperAdmin"
+    })
+}
 const getAllHostsServicesById = async (id: string, select = "") => {
     return UserModel.find({
         id: String,
@@ -32,5 +37,6 @@ export {
     getAllHostsServices,
     getUserByIDService,
     getAllHostsServicesById,
-    getLoggedInUsers
+    getLoggedInUsers,
+    getUserServices
 }

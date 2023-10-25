@@ -25,7 +25,7 @@ export const userSchema = new Schema<IUser>({
     },
     role: {
         type: String,
-        enum: ["Admin", "Host"],
+        enum: ["Admin", "SuperAdmin"],
         required: true
     },
     loggedIn: {

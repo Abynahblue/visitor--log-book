@@ -1,3 +1,4 @@
+import { sign } from 'jsonwebtoken';
 import { Request, Response } from "express";
 import bcrypt from "bcrypt"
 import QRCode from "qrcode"
@@ -7,7 +8,7 @@ import { createGuestServices, getAllGuestServices, getGuestService } from "../se
 import { apiErrorResponse, apiResponse } from "../utility/apiErrorResponse";
 import { IGuest, IGuestModel } from "../interface/guest.interface";
 import { generateToken, getHashedPassword, passwordIsValid } from "../utility/userUitility";
-import { getAllHostsServices, getAllHostsServicesById, getAllUserServices, getLoggedInUsers, getUserByIdService } from "../services/user.services";
+import { getAllHostsServices, getAllHostsServicesById, getAllUserServices, getLoggedInUsers, getUserByIdService, getUserServices } from "../services/user.services";
 import GuestModel from "../models/guest.model";
 import { guestFromLogsService, hostVisitsService } from "../services/visit.services";
 import mongoose, { Types } from "mongoose";
@@ -16,7 +17,7 @@ import { userResponses } from "../constants/guest.constants";
 import { IVisit } from "../interface/visit.interface";
 import { getAllUsers } from "./user.controller";
 import { hostVisitorRecords } from "./visit.controller";
-import { resolveContent } from "nodemailer/lib/shared";
+import { CustomExpressRequest } from "../types";
 
 const registerGuest = catchAsync(async (req: Request, res: Response) => {
     const { name, email, tel, password, company, hostEmail } = req.body;
@@ -234,6 +235,7 @@ const logout = async (req: Request, res: Response) => {
     try {
         const { visitLogId } = req.body;
         const visitLog: any = await guestFromLogsService(visitLogId)
+        console.log(visitLog);
 
         if (!visitLog) {
             return apiErrorResponse(400, "Visit log not found", res)
@@ -246,11 +248,33 @@ const logout = async (req: Request, res: Response) => {
         await visitLog.save()
 
         const admins: any = await getLoggedInUsers();
-        if (admins.length === 0) {
-            return apiErrorResponse(400, "there is no admin currently logged in", res)
-        }
+        console.log(admins);
 
-        for (const admin of admins.array) {
+        if (admins.length === 0) {
+            const admin: any = await getUserServices()
+            if (admin) {
+                const message = `Hello ${admin.fullName}
+            
+            ${visitLog.guest_id.fullName} has logged  out`
+
+                const transporter = nodemailer.createTransport({
+                    service: "gmail",
+                    auth: {
+                        user: process.env.MAILOPTIONS_USER,
+                        pass: process.env.MAILOPTIONS_PASS
+                    }
+                });
+
+                const mailOptions = {
+                    from: process.env.MAILOPTIONS_USER,
+                    to: admin.email,
+                    subject: 'Guest checkout notification',
+                    text: message
+                }
+                const info = await transporter.sendMail(mailOptions)
+            }
+        }
+        admins.forEach(async (admin: any) => {
 
             const message = `Hello ${admin.fullName}
             
@@ -271,9 +295,9 @@ const logout = async (req: Request, res: Response) => {
                 text: message
             }
             const info = await transporter.sendMail(mailOptions)
-        };
+        })
 
-        return apiResponse(200, visitLog, "Guest check-out successful.", res)
+        return apiResponse(200, { visitLog: visitLog.sign_out, message: "logout successful, See you again" }, "", res);
     } catch (err) {
         console.error(err)
         return apiErrorResponse(400, "Internal Server error", res)

@@ -85,8 +85,6 @@ const login = async (req: Request, res: Response) => {
             return apiErrorResponse(400, "Please provide email and password", res)
 
         const user = await UserModel.findOne({ email: userEmail }).select("+password")
-        console.log(user);
-
 
         if (!user) {
             return apiErrorResponse(400, 'User does not exist', res)
@@ -103,7 +101,6 @@ const login = async (req: Request, res: Response) => {
 
             return apiResponse(200, { token }, "Logged in", res)
         }
-        console.log(user);
 
     } catch (error) {
         return apiErrorResponse(500, "Internal Server Error", res)
