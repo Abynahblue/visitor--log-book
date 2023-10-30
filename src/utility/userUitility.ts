@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt"
+import crypto from "crypto";
 import { promisify } from "util";
 import { IUser } from "../interface/user.interface";
 
@@ -46,6 +47,32 @@ const passwordIsValid = (password: string) => {
   return re.test(password);
 };
 
+export class Crypto {
+  private key: Buffer;
+  private iv: Buffer;
+
+  constructor() {
+    this.key = Buffer.from(process.env.CIPHER_KEY!, "utf-8");
+    this.iv = Buffer.from(Buffer.alloc(16, 0).toString(), "utf-8");
+  }
+
+  public encryptText = (text: string) => {
+    try {
+      const cipher = crypto.createCipheriv("aes-256-cbc", this.key, this.iv);
+      const encrypted = cipher.update(text, 'utf-8', "base64") + cipher.final("base64")
+      return Buffer.from(encrypted).toString("base64")
+    } catch (error) { throw error }
+  }
+  //Decode a given text using AES encryption
+  public decryptText = (text: string) => {
+    try {
+      const decipher = crypto.createDecipheriv("aes-256-cbc", this.key, this.iv);
+      const textBuffer = Buffer.from(text, "base64")
+      const encryptedText = textBuffer.toString("utf-8")
+      return decipher.update(encryptedText, 'base64', 'utf-8') + decipher.final("utf-8")
+    } catch (error) { throw error }
+  }
+}
 export {
   decodedToken,
   encodeToken,

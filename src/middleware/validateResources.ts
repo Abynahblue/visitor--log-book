@@ -36,7 +36,6 @@ export const validateResource = (schema: any) => {
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            console.log(errors);
             
             return apiErrorResponse(400, errors.array(), res)
         }

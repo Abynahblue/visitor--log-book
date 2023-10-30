@@ -115,7 +115,6 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
 
 
     } catch (err) {
-        console.error(err);
         return apiErrorResponse(400, "Internal Server Error", res)
     }
 })
@@ -235,7 +234,6 @@ const logout = async (req: Request, res: Response) => {
     try {
         const { visitLogId } = req.body;
         const visitLog: any = await guestFromLogsService(visitLogId)
-        console.log(visitLog);
 
         if (!visitLog) {
             return apiErrorResponse(400, "Visit log not found", res)
@@ -248,7 +246,6 @@ const logout = async (req: Request, res: Response) => {
         await visitLog.save()
 
         const admins: any = await getLoggedInUsers();
-        console.log(admins);
 
         if (admins.length === 0) {
             const admin: any = await getUserServices()
@@ -297,9 +294,8 @@ const logout = async (req: Request, res: Response) => {
             const info = await transporter.sendMail(mailOptions)
         })
 
-        return apiResponse(200, visitLog, "logout successful, See you again", res);
+        return apiResponse(200, visitLogId, "logout successful, See you again", res);
     } catch (err) {
-        console.error(err)
         return apiErrorResponse(400, "Internal Server error", res)
     }
 }

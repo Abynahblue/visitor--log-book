@@ -51,39 +51,25 @@ const sendConfirmationEmail = async (email: string, confirmationCode: string) =>
     }
     try {
         const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent: ' + info.response);
     } catch (error) {
         console.error('Confirmation code could not be sent to email. Error: ', error);
 
     }
 }
 
-// const sendHostConfirmationEmail = async (host_email: string, confirmationCode: string) => {
-//     const transporter = nodemailer.createTransport({
-//         service: "gmail",
-//         host: "smtp.gmail.com",
-//         port: 587,
-//         secure: false,
-//         auth: {
-//             user: process.env.MAILOPTIONS_USER,
-//             pass: process.env.MAILOPTIONS_PASS
-//         }
-//     });
-
-//     const mailOptions = {
-//         from: process.env.MAILOPTIONS_USER,
-//         to: host_email,
-//         subject: 'Amalitech Vilog added you as a Host',
-//         text:'User the confirmation code provided in this email to reset your password'
-//     }
-//     try {
-//         const info = await transporter.sendMail(mailOptions);
-//     } catch (error) {
-
-//     }
-// }
+const confirmationCode = (): string => {
+    let result = "";
+    const characters = "0123456789";
+    for (let i = 0; i < 4; i++) {
+        result += characters.charAt(
+            Math.floor(Math.random() * characters.length)
+        )
+    }
+    return result
+}
 
 export {
     sendConfirmationEmail,
     generateRandomPassword,
+    confirmationCode
 }

@@ -40,6 +40,7 @@ const getliveVisits = async (req: Request, res: Response) => {
     }
 }
 
+
 const checkOut = async (req: Request, res: Response) => {
     try {
         const guestId = req.params.id;
@@ -102,68 +103,7 @@ const checkOut = async (req: Request, res: Response) => {
     }
 }
 
-const setAppointment = async (req: Request, res: Response) => {
 
-    const userId = req.params.id
-    let { email, guestdata, meetingDetails } = req.body;
-    try {
-        const user = await getUserByIDService(userId)
-
-        if (!user) return apiErrorResponse(400, "User does not exist", res)
-
-
-        const guest: any = await getGuestByEmailService(email)
-        if (!guest) {
-            await GuestModel.create(guestdata)
-        }
-
-        const meetingDetails = {
-            Date: req.body.meetingDetails.Date,
-            Time: req.body.meetingDetails.Time,
-            Location: req.body.meetingDetails.Location,
-            agenda: req.body.meetingDetails.agenda,
-            Organizer: `${user.fullName}`
-        };
-
-        const dataImage = await QRCode.toDataURL(JSON.stringify({ meetingDetails }))
-        guest.qrCode = dataImage
-        await guest.save();
-
-        const message = `Hello ${guest.first_name} ${guest.last_name}, You have an appointment with
-    ${user.fullName}   at Amalitech.
-
-    Contact Details.
-    Email: ${user.email}
-    Phone: ${user.phone}`;
-
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: process.env.MAILOPTIONS_USER,
-                pass: process.env.MAILOPTIONS_PASS
-            }
-        });
-
-        const mailOptions = {
-            from: process.env.MAILOPTIONS_USER,
-            to: guest.email,
-            subject: 'Please scan QrCode for more information ',
-            text: message,
-            attachments: [
-                {
-                    filename: "qr-image.png",
-                    path: dataImage
-                }
-            ]
-
-        }
-        const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent: ' + info.response);
-        return apiResponse(201, { meetingDetails, message }, "Email sent successfully", res)
-    } catch (error) {
-        return apiErrorResponse(400, "Internal Server error", res)
-    }
-}
 
 const getMonthlyVisits = async (req: Request, res: Response) => {
     try {
@@ -177,7 +117,6 @@ const getMonthlyVisits = async (req: Request, res: Response) => {
 export {
     hostVisitorRecords,
     checkOut,
-    setAppointment,
     getMonthlyVisits,
     getliveVisits
 }

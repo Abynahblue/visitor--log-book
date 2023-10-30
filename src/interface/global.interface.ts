@@ -1,12 +1,12 @@
 import { Types } from "mongoose";
 
-interface IResponseData {
+type IResponseData = string | {
     [key: string]: any;
     id?: Types.ObjectId
 }
 
-interface IServiceOptions{
+interface IServiceOptions {
     populate?: string
 }
 
-export {IResponseData, IServiceOptions}
+export { IResponseData, IServiceOptions }
