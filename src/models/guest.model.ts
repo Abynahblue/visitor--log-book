@@ -1,6 +1,7 @@
 import mongoose, { model, Schema, Types } from "mongoose";
 import { IGuest, IGuestModel } from "../interface/guest.interface";
 
+
 const guestSchema = new Schema<IGuest>(
     {
         fullName: String,
@@ -16,12 +17,15 @@ const guestSchema = new Schema<IGuest>(
             minlength: 8,
             select: false
         },
-        user: {
-            type: String,
-            ref: "User"
-        },
-        qrCode: {
-            type: String,
+        qrCodeId: {
+            host: {
+                type: String,
+                unique: true
+            },
+            admin: {
+                type: String,
+                unique: true
+            }
         },
         isQrCodeDisabled: {
             type: Boolean,

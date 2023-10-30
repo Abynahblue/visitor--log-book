@@ -7,7 +7,6 @@ const globalErrorHandler: ErrorRequestHandler = (
     res: Response,
     next: NextFunction
 ) => {
-    console.log('error: ', error);
     if (error.name === "MongoServerError") {
         switch (error.code) {
             case 11000:

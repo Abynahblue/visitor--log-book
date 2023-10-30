@@ -1,13 +1,17 @@
 import mongoose, { ObjectId } from "mongoose";
 
+interface IQrCodeId {
+    host: string | null
+    admin: string | null
+}
+
 export interface IGuest {
     fullName: string;
     email: string;
     phone: string;
     password: string;
     company?: string;
-    user?: mongoose.Types.ObjectId;
-    qrCode?: string;
+    qrCodeId?: IQrCodeId;
     isQrCodeDisabled?: boolean,
 }
 
