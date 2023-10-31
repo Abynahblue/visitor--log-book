@@ -1,6 +1,6 @@
 import express, { Express, IRouter } from "express"
 import { guestSchema, protect, restrictTo, validateResource } from "../middleware/validateResources"
-import { registerGuest, getAllGuests, getGuest, searchUsers, login, logout, getHostGuests } from "../controllers/guest.controller"
+import { registerGuest, getAllGuests, getGuest, searchUsers, login, logout, getHostGuests, updateGuest } from "../controllers/guest.controller"
 import { generateQrCode, loginWithQRCode } from "../controllers/qrcode.controller"
 
 export const guestRoute = (router: IRouter) => {
@@ -18,7 +18,7 @@ export const guestRoute = (router: IRouter) => {
         .post(login)
 
     router.route("/guest/generateQrCode")
-        .post(generateQrCode)
+        .post(protect, generateQrCode)
     router
         .route("/guest/qrCodeLogin")
         .post(loginWithQRCode)
@@ -28,4 +28,7 @@ export const guestRoute = (router: IRouter) => {
     router
         .route("/hostGuests/:id")
         .get(protect, getHostGuests)
+    router
+        .route("/update/:id")
+        .put(updateGuest)
 }

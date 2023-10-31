@@ -20,11 +20,9 @@ const guestSchema = new Schema<IGuest>(
         qrCodeId: {
             host: {
                 type: String,
-                unique: true
             },
             admin: {
                 type: String,
-                unique: true
             }
         },
         isQrCodeDisabled: {
