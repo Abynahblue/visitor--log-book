@@ -4,7 +4,7 @@ import bcrypt from "bcrypt"
 import QRCode from "qrcode"
 import nodemailer from "nodemailer"
 import catchAsync from "../utility/catchAsync";
-import { createGuestServices, getAllGuestServices, getGuestService } from "../services/guest.services";
+import { createGuestServices, getAllGuestServices, getGuestByIdService, getGuestService, updateGuestServices } from "../services/guest.services";
 import { apiErrorResponse, apiResponse } from "../utility/apiErrorResponse";
 import { IGuest, IGuestModel } from "../interface/guest.interface";
 import { generateToken, getHashedPassword, passwordIsValid } from "../utility/userUitility";
@@ -44,6 +44,10 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
         const hashedPassword = await getHashedPassword(password);
 
         const data: IGuest = {
+            qrCodeId: {
+                admin: '',
+                host: ''
+            },
             fullName: name,
             email,
             phone: tel,
@@ -94,7 +98,7 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
         const infoHost = await transporter.sendMail(mailOptions);
 
         const qrCode = JSON.stringify({ visitLogId: visitLog._id });
-        const dataImage: any = await QRCode.toDataURL(qrCode);
+        const dataImage = await QRCode.toDataURL(qrCode);
 
         const emailOptions = {
             from: process.env.MAILOPTIONS_USER,
@@ -115,6 +119,8 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
 
 
     } catch (err) {
+        console.log(err);
+
         return apiErrorResponse(400, "Internal Server Error", res)
     }
 })
@@ -227,7 +233,13 @@ const getGuest = async (req: Request, res: Response) => {
     }
 }
 
-
+const updateGuest = catchAsync(async (req: Request, res: Response) => {
+    const guestId = req.params.id;
+    const user = await getGuestByIdService(guestId);
+    if (!user) return apiErrorResponse(400, "Invalid Id", res);
+    await updateGuestServices(guestId, req.body);
+    return apiResponse(200, null, "Guest updated successfully", res);
+});
 
 
 const logout = async (req: Request, res: Response) => {
@@ -341,5 +353,6 @@ export {
     getGuest,
     searchUsers,
     logout,
-    getHostGuests
+    getHostGuests,
+    updateGuest
 };
