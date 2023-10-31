@@ -20,11 +20,11 @@ import { hostVisitorRecords } from "./visit.controller";
 import { CustomExpressRequest } from "../types";
 
 const registerGuest = catchAsync(async (req: Request, res: Response) => {
-    const { name, email, tel, password, company, hostEmail } = req.body;
+    const { name, email, tel, password, company, hostEmail, position } = req.body;
 
 
     try {
-        if (!name || !email || !tel || !password || !hostEmail) {
+        if (!name || !email || !tel || !password || !hostEmail || !position) {
             return apiErrorResponse(400, "Please add all fields!", res)
         }
         if (passwordIsValid(password)) {
@@ -51,6 +51,7 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
             fullName: name,
             email,
             phone: tel,
+            position,
             password: hashedPassword,
             company
         }

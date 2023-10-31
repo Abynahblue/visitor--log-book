@@ -9,6 +9,7 @@ export interface IGuest {
     fullName: string;
     email: string;
     phone: string;
+    position: string;
     password: string;
     company?: string;
     qrCodeId?: IQrCodeId;
