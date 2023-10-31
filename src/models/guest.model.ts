@@ -17,6 +17,10 @@ const guestSchema = new Schema<IGuest>(
             minlength: 8,
             select: false
         },
+        position: {
+            type: String,
+            enum: ["contractor", "visitor"]
+        },
         qrCodeId: {
             host: {
                 type: String,
