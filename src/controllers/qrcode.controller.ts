@@ -201,10 +201,10 @@ const loginWithQRCode = async (req: Request, res: Response) => {
 
         if (!email || !password) return apiErrorResponse(400, " Email and password are required from the qrcode", res)
 
-        const guest = await GuestModel.findOne({ uuid, email, password });
+        const guest = await GuestModel.findOneAndUpdate({ uuid, email, password });
         if (!guest) return apiErrorResponse(400, "Guest not found", res)
         if (guest.qrCodeId?.host) {
-            guest.qrCodeId.host = null
+            guest.qrCodeId.host = "";
             await guest.save()
             return apiResponse(200, { guest }, "Login successful", res)
         }

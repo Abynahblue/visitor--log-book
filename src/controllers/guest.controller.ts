@@ -22,7 +22,6 @@ import { CustomExpressRequest } from "../types";
 const registerGuest = catchAsync(async (req: Request, res: Response) => {
     const { name, email, tel, password, company, hostEmail } = req.body;
 
-    console.log(req.body);
 
     try {
         if (!name || !email || !tel || !password || !hostEmail) {
@@ -45,6 +44,10 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
         const hashedPassword = await getHashedPassword(password);
 
         const data: IGuest = {
+            qrCodeId: {
+                admin: '',
+                host: ''
+            },
             fullName: name,
             email,
             phone: tel,
@@ -95,7 +98,7 @@ const registerGuest = catchAsync(async (req: Request, res: Response) => {
         const infoHost = await transporter.sendMail(mailOptions);
 
         const qrCode = JSON.stringify({ visitLogId: visitLog._id });
-        const dataImage: any = await QRCode.toDataURL(qrCode);
+        const dataImage = await QRCode.toDataURL(qrCode);
 
         const emailOptions = {
             from: process.env.MAILOPTIONS_USER,
