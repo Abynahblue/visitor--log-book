@@ -13,7 +13,9 @@ const app: Express = express();
 const router = express.Router();
 
 app.use(express.json());
-app.use(cors())
+app.use(cors({
+    origin: "*"
+}))
 
 app.use("/api/v1", router)
 guestRoute(router)
