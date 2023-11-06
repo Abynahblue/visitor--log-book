@@ -7,6 +7,8 @@ import nodemailer from "nodemailer"
 import { confirmationCode } from "../middleware/email";
 import { Crypto } from "../utility/userUitility";
 import { IGuestModel } from "../interface/guest.interface";
+import { CustomExpressRequest } from "../types";
+import { getUserByIDService, getUserByIdService } from "../services/user.services";
 const uuidv4 = require('uuid').v4
 
 const confirmHostEmail = async (req: Request, res: Response) => {
@@ -92,6 +94,8 @@ const setAppointment = async (req: Request, res: Response) => {
         }
 
         guest.qrCodeId.host = uuid
+        guest.qrCodeId.createdAt = new Date()
+        guest.qrCodeId.email = hostEmail
         await guest.save();
 
 
@@ -139,6 +143,8 @@ const setAppointment = async (req: Request, res: Response) => {
 
 const generateQrCode = async (req: Request, res: Response) => {
     try {
+        const userId = (req as CustomExpressRequest).currentUserId
+        const user = await getUserByIDService(userId)
         const { email: guestEmail } = req.body;
 
         const guest = await getGuestByEmailService(guestEmail, "+password")
@@ -157,6 +163,8 @@ const generateQrCode = async (req: Request, res: Response) => {
             };
         }
         guest.qrCodeId.admin = uuid
+        guest.qrCodeId.createdAt = new Date()
+        guest.qrCodeId.email = user?.email
         await guest.save()
 
         //res.cookie("id", uuid, { httpOnly: true, secure: true });

@@ -26,6 +26,8 @@ const guestSchema = new Schema<IGuest>(
                 type: String,
                 unique: true,
             },
+            email: String,
+            createdAt: Date,
             admin: {
                 type: String,
                 unique: true
