@@ -4,7 +4,7 @@ import UserModel from "../models/user.model";
 const createUserServices = async (data: IUser) => {
     return UserModel.create(data)
 }
-const getUserByIdService = async (id: string, select = "") => UserModel.findById(id).select(select)
+const getUserByIdService = async (id: string) => UserModel.findById(id).populate("userId")
 const getUserByIDService = async (id: string) => UserModel.findById(id)
 const getUserService = async (email: string) => UserModel.findOne({ email }).exec();
 const getLoggedInUsers = async () => UserModel.find({ loggedIn: true })

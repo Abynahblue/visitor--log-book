@@ -18,6 +18,7 @@ const createGuestServices = async (data: IGuest) => {
 const getGuestService = async (id: string) => GuestModel.findById(id);
 const getGuestByIdService = async (id: string) => GuestModel.findByIdAndUpdate(id);
 
+
 const updateGuestServices = async (id: string, data: any) => GuestModel.findByIdAndUpdate({ _id: id }, data, { new: true });
 
 const getGuestByEmailService = async (email: string, select?: string) => GuestModel.findOne({ email }).select(select);

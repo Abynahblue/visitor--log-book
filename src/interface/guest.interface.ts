@@ -3,6 +3,8 @@ import mongoose, { ObjectId } from "mongoose";
 interface IQrCodeId {
     host: string | null
     admin: string | null
+    email?: string | null
+    createdAt?: Date
 }
 
 export interface IGuest {
